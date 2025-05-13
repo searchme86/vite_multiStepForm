@@ -5,11 +5,11 @@
 // - 비유: 블로그 포스트의 표지(제목), 본문(내용), 분류 라벨(카테고리)
 // - 작동 메커니즘:
 //   1. useFormContext로 폼 컨텍스트 접근
-//   2. FormField로 입력 필드 관리
+//   2. Controller로 카테고리 입력 관리, ref 전달 제거
 //   3. Select로 카테고리 선택, 유효성 검사 오류 표시
-// - 관련 키워드: react-hook-form, shadcn/ui, Select, zod
+// - 관련 키워드: react-hook-form, shadcn/ui, Select, zod, Controller
 import React from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, Controller } from 'react-hook-form';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import {
@@ -32,6 +32,7 @@ import { BlogPostFormData } from '../types/blog-post';
 // - 타입: Array<{ value: string; label: string }>
 // - 의미: 사용자가 선택 가능한 카테고리 목록
 // - 사용 이유: 고정된 옵션으로 입력 제한
+// - 비유: 책장에 붙일 색깔 스티커 목록
 const categoryOptions = [
   { value: 'tech', label: '기술' },
   { value: 'lifestyle', label: '생활' },
@@ -41,6 +42,7 @@ const categoryOptions = [
 
 // 함수: 기본 정보 섹션 컴포넌트
 // - 의미: 제목, 내용, 카테고리 입력 UI
+// - 사용 이유: 사용자 입력 수집 및 유효성 검사
 function BasicInfoSection() {
   // 폼 컨텍스트: react-hook-form 훅
   // - 타입: UseFormReturn<BlogPostFormData> | null
@@ -64,6 +66,7 @@ function BasicInfoSection() {
   return (
     // 컨테이너: 입력 필드와 레이블
     // - 의미: 제목, 내용, 카테고리 입력 UI 통합
+    // - 사용 이유: 사용자 친화적 레이아웃 제공
     <div className="space-y-6">
       {/* 제목 입력 */}
       <FormField
@@ -107,33 +110,32 @@ function BasicInfoSection() {
         )}
       />
       {/* 카테고리 선택 */}
-      <FormField
+      {/* - 의미: 카테고리 입력 필드, Select 컴포넌트 사용 */}
+      {/* - 사용 이유: 사용자에게 고정된 옵션 제공, ref 전달 방지 */}
+      <Controller
         control={control}
         name="category"
-        render={({ field }) => (
+        render={({ field, fieldState: { error } }) => (
           <FormItem>
             <FormLabel>카테고리</FormLabel>
-            <FormControl>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                aria-label="카테고리 선택"
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="카테고리를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            {errors.category && (
-              <FormMessage>{errors.category.message}</FormMessage>
-            )}
+            {/* FormControl 제거, Select 직접 렌더링 */}
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || ''} // Fallback: 값이 없으면 빈 문자열
+              aria-label="카테고리 선택"
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="카테고리를 선택하세요" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {error && <FormMessage>{error.message}</FormMessage>}
           </FormItem>
         )}
       />

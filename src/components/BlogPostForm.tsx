@@ -7,7 +7,8 @@
 //   1. useForm으로 폼 상태 초기화
 //   2. FormProvider로 하위 컴포넌트에 폼 컨텍스트 제공
 //   3. Tabs로 BasicInfoSection, MediaSection, PublishingOptions 전환
-// - 관련 키워드: react-hook-form, shadcn/ui, Tabs, FormProvider, zod
+//   4. NotificationProvider로 알림 지원
+// - 관련 키워드: react-hook-form, shadcn/ui, Tabs, FormProvider, zod, Toast
 import React from 'react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -24,23 +25,29 @@ import { Switch } from './ui/switch';
 import { Icon } from '@iconify/react';
 import BasicInfoSection from './BasicInfoSection';
 import MediaSection from './MediaSection';
+import NotificationProvider, { useToast } from './Notification';
 import { BlogPostFormData, blogPostSchema } from '../types/blog-post';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 // 함수: 게시 옵션 섹션
-// - 의미: 초안 저장과 공개 여부 설정 UI
-// - 사용 이유: 게시 옵션 관리 분리
+// - 의미: 초안 저장과 공개 여부 설정 UI, 알림 트리거
+// - 사용 이유: 게시 옵션 관리 및 사용자 피드백 제공
 function PublishingOptions() {
   // 폼 컨텍스트: react-hook-form 훅
   // - 타입: UseFormReturn<BlogPostFormData>
   // - 의미: 폼 상태 및 메서드 접근
   // - 사용 이유: 중앙화된 폼 관리
-  // - Fallback: 컨텍스트 없음 처리 (BasicInfoSection에서 구현)
   const { control } = useFormContext<BlogPostFormData>();
+
+  // 토스트: 알림 표시 훅
+  // - 타입: () => { toast: (options: { title: string, description?: string }) => void }
+  // - 의미: 사용자에게 이벤트 결과 알림
+  // - 사용 이유: 직관적인 피드백 제공
+  const { toast } = useToast();
 
   return (
     // 컨테이너: 게시 옵션 UI
-    // - 의미: 토글 스위치 포함
+    // - 의미: 토글 스위치와 알림 포함
     <div className="space-y-6">
       {/* 초안 저장 토글 */}
       <FormField
@@ -57,7 +64,15 @@ function PublishingOptions() {
             <FormControl>
               <Switch
                 checked={field.value}
-                onCheckedChange={field.onChange}
+                onCheckedChange={(checked) => {
+                  field.onChange(checked);
+                  toast({
+                    title: checked ? '초안으로 저장' : '초안 해제',
+                    description: checked
+                      ? '포스트가 초안으로 저장됩니다.'
+                      : '포스트가 초안에서 해제되었습니다.',
+                  });
+                }}
                 aria-label="초안으로 저장"
               />
             </FormControl>
@@ -84,7 +99,15 @@ function PublishingOptions() {
             <FormControl>
               <Switch
                 checked={field.value}
-                onCheckedChange={field.onChange}
+                onCheckedChange={(checked) => {
+                  field.onChange(checked);
+                  toast({
+                    title: checked ? '공개 설정' : '비공개 설정',
+                    description: checked
+                      ? '포스트가 공개로 설정되었습니다.'
+                      : '포스트가 비공개로 설정되었습니다.',
+                  });
+                }}
                 aria-label="공개 여부"
               />
             </FormControl>
@@ -109,7 +132,7 @@ function BlogPostForm() {
   // - 사용 이유: 선언적 폼 관리
   // - Fallback: 기본값으로 빈 폼 데이터 제공
   const methods = useForm<BlogPostFormData>({
-    resolver: zodResolver(blogPostSchema), // zod 스키마로 유효성 검사
+    resolver: zodResolver(blogPostSchema),
     defaultValues: {
       title: '',
       description: '',
@@ -133,58 +156,63 @@ function BlogPostForm() {
 
   return (
     // 컨테이너: 폼 전체 UI
-    // - 의미: 탭과 제출 버튼 포함
-    <div className="max-w-4xl py-8 mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle>새 블로그 포스트 작성</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* FormProvider: 폼 컨텍스트 제공 */}
-          {/* - 의미: 하위 컴포넌트에 폼 상태 전달 */}
-          <FormProvider {...methods}>
-            <form
-              onSubmit={methods.handleSubmit(onSubmit)}
-              className="space-y-8"
-            >
-              {/* 탭: 섹션 전환 */}
-              <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="basic">기본 정보</TabsTrigger>
-                  <TabsTrigger value="media">미디어</TabsTrigger>
-                  <TabsTrigger value="publishing">게시 옵션</TabsTrigger>
-                </TabsList>
-                <TabsContent value="basic">
-                  <BasicInfoSection />
-                </TabsContent>
-                <TabsContent value="media">
-                  <MediaSection />
-                </TabsContent>
-                <TabsContent value="publishing">
-                  <PublishingOptions />
-                </TabsContent>
-              </Tabs>
-              {/* 제출 버튼 */}
-              <div className="flex justify-end space-x-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => methods.setValue('isDraft', true)}
-                  disabled={methods.formState.isSubmitting}
-                >
-                  <Icon icon="lucide:save" className="w-4 h-4 mr-2" />
-                  초안으로 저장
-                </Button>
-                <Button type="submit" disabled={methods.formState.isSubmitting}>
-                  <Icon icon="lucide:send" className="w-4 h-4 mr-2" />
-                  게시
-                </Button>
-              </div>
-            </form>
-          </FormProvider>
-        </CardContent>
-      </Card>
-    </div>
+    // - 의미: 탭, 제출 버튼, 알림 포함
+    <NotificationProvider>
+      <div className="max-w-4xl py-8 mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>새 블로그 포스트 작성</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* FormProvider: 폼 컨텍스트 제공 */}
+            {/* - 의미: 하위 컴포넌트에 폼 상태 전달 */}
+            <FormProvider {...methods}>
+              <form
+                onSubmit={methods.handleSubmit(onSubmit)}
+                className="space-y-8"
+              >
+                {/* 탭: 섹션 전환 */}
+                <Tabs defaultValue="basic" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="basic">기본 정보</TabsTrigger>
+                    <TabsTrigger value="media">미디어</TabsTrigger>
+                    <TabsTrigger value="publishing">게시 옵션</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="basic">
+                    <BasicInfoSection />
+                  </TabsContent>
+                  <TabsContent value="media">
+                    <MediaSection />
+                  </TabsContent>
+                  <TabsContent value="publishing">
+                    <PublishingOptions />
+                  </TabsContent>
+                </Tabs>
+                {/* 제출 버튼 */}
+                <div className="flex justify-end space-x-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => methods.setValue('isDraft', true)}
+                    disabled={methods.formState.isSubmitting}
+                  >
+                    <Icon icon="lucide:save" className="w-4 h-4 mr-2" />
+                    초안으로 저장
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={methods.formState.isSubmitting}
+                  >
+                    <Icon icon="lucide:send" className="w-4 h-4 mr-2" />
+                    게시
+                  </Button>
+                </div>
+              </form>
+            </FormProvider>
+          </CardContent>
+        </Card>
+      </div>
+    </NotificationProvider>
   );
 }
 
