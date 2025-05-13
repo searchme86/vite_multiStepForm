@@ -1,13 +1,14 @@
 //====여기부터 수정됨====
 // BasicInfoSection.tsx: 블로그 포스트의 기본 정보 입력 섹션
-// - 의미: 제목, 내용, 카테고리 입력을 처리하는 폼 섹션
-// - 사용 이유: 블로그 포스트의 핵심 정보 관리
-// - 비유: 블로그 포스트의 표지(제목), 본문(내용), 분류 라벨(카테고리)
+// - 의미: 제목, 내용, 카테고리 입력 및 주의 문구 관리
+// - 사용 이유: 블로그 포스트의 핵심 정보와 작성 가이드 제공
+// - 비유: 블로그 포스트의 표지(제목), 본문(내용), 분류 라벨(카테고리), 작성 규칙 메모
 // - 작동 메커니즘:
 //   1. useFormContext로 폼 컨텍스트 접근
 //   2. Controller로 카테고리 입력 관리, ref 전달 제거
 //   3. Select로 카테고리 선택, 유효성 검사 오류 표시
-// - 관련 키워드: react-hook-form, shadcn/ui, Select, zod, Controller
+//   4. 주의 문구 리스트와 확인 버튼으로 사용자 가이드 제공
+// - 관련 키워드: react-hook-form, shadcn/ui, Select, zod, Controller, react-hot-toast
 import React from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { Input } from './ui/input';
@@ -26,7 +27,9 @@ import {
   FormLabel,
   FormMessage,
 } from './ui/form';
+import { Button } from './ui/button';
 import { BlogPostFormData } from '../types/blog-post';
+import toast from 'react-hot-toast';
 
 // 상수: 카테고리 옵션
 // - 타입: Array<{ value: string; label: string }>
@@ -41,8 +44,8 @@ const categoryOptions = [
 ];
 
 // 함수: 기본 정보 섹션 컴포넌트
-// - 의미: 제목, 내용, 카테고리 입력 UI
-// - 사용 이유: 사용자 입력 수집 및 유효성 검사
+// - 의미: 제목, 내용, 카테고리 입력 및 주의 문구 UI
+// - 사용 이유: 사용자 입력 수집 및 작성 가이드 제공
 function BasicInfoSection() {
   // 폼 컨텍스트: react-hook-form 훅
   // - 타입: UseFormReturn<BlogPostFormData> | null
@@ -63,11 +66,48 @@ function BasicInfoSection() {
     formState: { errors },
   } = formContext;
 
+  // 함수: 주의 문구 확인 핸들러
+  // - 의미: 확인 버튼 클릭 시 토스트 팝업 표시
+  // - 사용 이유: 사용자에게 가이드 확인 피드백 제공
+  const handleGuidelinesCheck = () => {
+    toast.success('유의사항을 확인했습니다.', {
+      duration: 3000, // 3초 후 자동 사라짐
+    });
+  };
+
   return (
-    // 컨테이너: 입력 필드와 레이블
-    // - 의미: 제목, 내용, 카테고리 입력 UI 통합
+    // 컨테이너: 입력 필드, 주의 문구, 확인 버튼
+    // - 의미: 제목, 내용, 카테고리 입력 및 가이드 UI 통합
     // - 사용 이유: 사용자 친화적 레이아웃 제공
     <div className="space-y-6">
+      {/* 주의 문구 섹션 */}
+      <div className="p-6 space-y-6 rounded-lg bg-gray-50">
+        <div>
+          <h3 className="mb-4 text-lg font-medium">포스트 작성 유의사항</h3>
+          {/* 리스트: 주의 문구 */}
+          {/* - 의미: 사용자에게 작성 규칙 안내 */}
+          {/* - 사용 이유: 명확한 가이드 제공 */}
+          <ul className="pl-5 space-y-2 text-gray-600 list-disc">
+            <li>제목은 5자 이상 100자 이하로 작성해주세요.</li>
+            <li>내용은 100자 이상 작성해주세요.</li>
+            <li>카테고리를 반드시 선택해주세요.</li>
+            <li>최소 1개 이상의 태그를 추가해주세요. (최대 5개)</li>
+            <li>대표 이미지는 최소 1개 이상 업로드해주세요. (최대 10개)</li>
+          </ul>
+          {/* 버튼: 주의 문구 확인 */}
+          {/* - 의미: 사용자가 가이드를 확인했음을 알림 */}
+          {/* - 사용 이유: 인터랙티브 피드백 제공 */}
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-4"
+            onClick={handleGuidelinesCheck}
+            aria-label="유의사항 확인"
+          >
+            유의사항 확인
+          </Button>
+        </div>
+      </div>
       {/* 제목 입력 */}
       <FormField
         control={control}
@@ -118,23 +158,24 @@ function BasicInfoSection() {
         render={({ field, fieldState: { error } }) => (
           <FormItem>
             <FormLabel>카테고리</FormLabel>
-            {/* FormControl 제거, Select 직접 렌더링 */}
-            <Select
-              onValueChange={field.onChange}
-              value={field.value || ''} // Fallback: 값이 없으면 빈 문자열
-              aria-label="카테고리 선택"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="카테고리를 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FormControl>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || ''} // Fallback: 값이 없으면 빈 문자열
+                aria-label="카테고리 선택"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="카테고리를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormControl>
             {error && <FormMessage>{error.message}</FormMessage>}
           </FormItem>
         )}

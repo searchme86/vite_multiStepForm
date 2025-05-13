@@ -7,8 +7,8 @@
 //   1. useForm으로 폼 상태 초기화
 //   2. FormProvider로 하위 컴포넌트에 폼 컨텍스트 제공
 //   3. Tabs로 BasicInfoSection, MediaSection, PublishingOptions 전환
-//   4. NotificationProvider로 알림 지원
-// - 관련 키워드: react-hook-form, shadcn/ui, Tabs, FormProvider, zod, Toast
+//   4. NotificationProvider와 react-hot-toast로 알림 표시
+// - 관련 키워드: react-hook-form, shadcn/ui, Tabs, FormProvider, zod, react-hot-toast
 import React from 'react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -25,12 +25,13 @@ import { Switch } from './ui/switch';
 import { Icon } from '@iconify/react';
 import BasicInfoSection from './BasicInfoSection';
 import MediaSection from './MediaSection';
-import NotificationProvider, { useToast } from './Notification';
+import NotificationProvider from './Notification';
 import { BlogPostFormData, blogPostSchema } from '../types/blog-post';
 import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 
 // 함수: 게시 옵션 섹션
-// - 의미: 초안 저장과 공개 여부 설정 UI, 알림 트리거
+// - 의미: 초안 저장과 공개 여부 설정 UI, 토스트 팝업 트리거
 // - 사용 이유: 게시 옵션 관리 및 사용자 피드백 제공
 function PublishingOptions() {
   // 폼 컨텍스트: react-hook-form 훅
@@ -39,15 +40,9 @@ function PublishingOptions() {
   // - 사용 이유: 중앙화된 폼 관리
   const { control } = useFormContext<BlogPostFormData>();
 
-  // 토스트: 알림 표시 훅
-  // - 타입: () => { toast: (options: { title: string, description?: string }) => void }
-  // - 의미: 사용자에게 이벤트 결과 알림
-  // - 사용 이유: 직관적인 피드백 제공
-  const { toast } = useToast();
-
   return (
     // 컨테이너: 게시 옵션 UI
-    // - 의미: 토글 스위치와 알림 포함
+    // - 의미: 토글 스위치와 토스트 포함
     <div className="space-y-6">
       {/* 초안 저장 토글 */}
       <FormField
@@ -56,7 +51,7 @@ function PublishingOptions() {
         render={({ field }) => (
           <FormItem className="flex items-center justify-between p-4 border rounded-lg">
             <div className="space-y-0.5">
-              <FormLabel>Save as Draft</FormLabel>
+              <FormLabel>초안으로 저장</FormLabel>
               <p className="text-sm text-gray-500">
                 초안으로 저장하면 나중에 수정할 수 있습니다.
               </p>
@@ -66,12 +61,17 @@ function PublishingOptions() {
                 checked={field.value}
                 onCheckedChange={(checked) => {
                   field.onChange(checked);
-                  toast({
-                    title: checked ? '초안으로 저장' : '초안 해제',
-                    description: checked
+                  // 토스트: 초안 상태 변경 시 팝업 표시
+                  // - 의미: 사용자에게 상태 변경 알림
+                  // - 사용 이유: 즉각적인 피드백 제공
+                  toast.success(
+                    checked
                       ? '포스트가 초안으로 저장됩니다.'
                       : '포스트가 초안에서 해제되었습니다.',
-                  });
+                    {
+                      duration: 3000, // 3초 후 자동 사라짐
+                    }
+                  );
                 }}
                 aria-label="초안으로 저장"
               />
@@ -91,7 +91,7 @@ function PublishingOptions() {
         render={({ field }) => (
           <FormItem className="flex items-center justify-between p-4 border rounded-lg">
             <div className="space-y-0.5">
-              <FormLabel>Public Visibility</FormLabel>
+              <FormLabel>공개 포스트</FormLabel>
               <p className="text-sm text-gray-500">
                 공개로 설정하면 모든 사용자가 볼 수 있습니다.
               </p>
@@ -101,12 +101,17 @@ function PublishingOptions() {
                 checked={field.value}
                 onCheckedChange={(checked) => {
                   field.onChange(checked);
-                  toast({
-                    title: checked ? '공개 설정' : '비공개 설정',
-                    description: checked
+                  // 토스트: 공개 상태 변경 시 팝업 표시
+                  // - 의미: 사용자에게 상태 변경 알림
+                  // - 사용 이유: 즉각적인 피드백 제공
+                  toast.success(
+                    checked
                       ? '포스트가 공개로 설정되었습니다.'
                       : '포스트가 비공개로 설정되었습니다.',
-                  });
+                    {
+                      duration: 3000, // 3초 후 자동 사라짐
+                    }
+                  );
                 }}
                 aria-label="공개 여부"
               />
@@ -151,7 +156,12 @@ function BlogPostForm() {
   // - 사용 이유: 사용자 입력 저장
   const onSubmit = (data: BlogPostFormData) => {
     console.log('Form submitted:', data);
-    // 실제 구현에서는 API 호출
+    // 토스트: 제출 성공 시 팝업 표시
+    // - 의미: 사용자에게 제출 완료 알림
+    // - 사용 이유: 작업 완료 피드백
+    toast.success('포스트가 성공적으로 제출되었습니다.', {
+      duration: 3000,
+    });
   };
 
   return (
@@ -193,8 +203,17 @@ function BlogPostForm() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => methods.setValue('isDraft', true)}
+                    onClick={() => {
+                      methods.setValue('isDraft', true);
+                      // 토스트: 초안 저장 버튼 클릭 시 팝업
+                      // - 의미: 초안 저장 알림
+                      // - 사용 이유: 사용자 피드백
+                      toast.success('포스트가 초안으로 저장됩니다.', {
+                        duration: 3000,
+                      });
+                    }}
                     disabled={methods.formState.isSubmitting}
+                    aria-label="초안으로 저장"
                   >
                     <Icon icon="lucide:save" className="w-4 h-4 mr-2" />
                     초안으로 저장
@@ -202,6 +221,7 @@ function BlogPostForm() {
                   <Button
                     type="submit"
                     disabled={methods.formState.isSubmitting}
+                    aria-label="게시"
                   >
                     <Icon icon="lucide:send" className="w-4 h-4 mr-2" />
                     게시
