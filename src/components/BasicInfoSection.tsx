@@ -1,13 +1,14 @@
 //====여기부터 수정됨====
 // BasicInfoSection.tsx: 블로그 포스트의 기본 정보 입력 섹션
-// - 의미: 제목, 내용, 카테고리 입력
-// - 사용 이유: 핵심 정보 입력 통합
+// - 의미: 제목, 내용, 카테고리 입력 관리
+// - 사용 이유: 핵심 정보 입력을 위한 UI 제공
 // - 비유: 블로그 포스트의 표지(제목), 본문(내용), 라벨(카테고리)
 // - 작동 메커니즘:
 //   1. useFormContext로 폼 상태 관리
-//   2. FormItem으로 입력 필드 관리
-//   3. PostGuidelines로 가이드와 자동저장 불러오기 렌더링
-// - 관련 키워드: react-hook-form, shadcn/ui, flexbox
+//   2. FormItem으로 입력 필드 구성
+//   3. PostGuidelines로 가이드라인 표시
+//   4. Textarea 크기 고정(resize: none, 고정 height)
+// - 관련 키워드: react-hook-form, shadcn/ui, flexbox, Textarea
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Input } from './ui/input';
@@ -99,6 +100,7 @@ function BasicInfoSection() {
     // 컨테이너: 반응형 레이아웃
     // - 의미: 모바일, 태블릿, 데스크톱 지원
     // - 사용 이유: 다양한 화면 크기에서 일관된 UI
+    // - 스타일: flex로 세로 정렬
     <div className="px-4 space-y-6 sm:px-6 md:px-8">
       {/* 가이드라인 컴포넌트 */}
       {/* - 의미: 작성 가이드 및 자동저장 불러오기 표시 */}
@@ -107,7 +109,6 @@ function BasicInfoSection() {
       {/* 폼 필드 컨테이너 */}
       {/* - 의미: 입력 필드를 세로로 정렬 */}
       {/* - 사용 이유: flex로 간단한 세로 레이아웃 구현 */}
-      {/* - 비유: 책 페이지에 줄글처럼 세로로 쌓인 문단 */}
       <div className="flex flex-col gap-6">
         {/* 제목 필드 */}
         {/* - 의미: 제목 입력 UI */}
@@ -130,7 +131,7 @@ function BasicInfoSection() {
           <label className="text-sm font-medium">내용</label>
           <Textarea
             placeholder="블로그 포스트 내용을 입력하세요"
-            className="min-h-[200px]"
+            className="min-h-[200px] h-[200px] resize-none" // 크기 고정
             value={contentValue}
             onChange={handleContentChange}
             aria-invalid={!!errors.content}
