@@ -1,4 +1,4 @@
-//====여기부터 수정됨====
+//====수정됨====
 // FileUpload.tsx: 파일 업로드 및 미리보기 UI
 // - 의미: 파일 드래그 앤 드롭, 선택, 업로드 상태 표시
 // - 사용 이유: 사용자 친화적인 파일 업로드 경험 제공
@@ -14,7 +14,6 @@ import { Progress } from './ui/progress';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Icon } from '@iconify/react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 // 인터페이스: FileUpload 컴포넌트의 props
 // - 타입: { files, previews, onFilesSelected, onFileRemove, uploadProgress, randomColors }
@@ -293,101 +292,89 @@ function FileUpload({
             )}
           </div>
           <div className="max-h-[300px] overflow-y-auto pr-1">
-            <AnimatePresence>
-              {files.map((file, index) => (
-                <motion.div
-                  key={`${file.name}-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="mb-3"
-                >
-                  <Card>
-                    <CardContent className="flex items-center justify-between p-4">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`p-2 rounded-lg ${
+            {files.map((file, index) => (
+              <div key={`${file.name}-${index}`} className="mb-3">
+                <Card>
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`p-2 rounded-lg ${
+                          uploadStatus[file.name] === 'error'
+                            ? 'bg-red-100'
+                            : uploadStatus[file.name] === 'success'
+                            ? 'bg-green-100'
+                            : `bg-${fileColors[file.name] || 'blue'}-100`
+                        }`}
+                      >
+                        <Icon
+                          icon={getFileIcon(file.name)}
+                          className={`h-6 w-6 ${
                             uploadStatus[file.name] === 'error'
-                              ? 'bg-red-100'
+                              ? 'text-red-600'
                               : uploadStatus[file.name] === 'success'
-                              ? 'bg-green-100'
-                              : `bg-${fileColors[file.name] || 'blue'}-100`
+                              ? 'text-green-600'
+                              : `text-${fileColors[file.name] || 'blue'}-600`
                           }`}
-                        >
-                          <Icon
-                            icon={getFileIcon(file.name)}
-                            className={`h-6 w-6 ${
-                              uploadStatus[file.name] === 'error'
-                                ? 'text-red-600'
-                                : uploadStatus[file.name] === 'success'
-                                ? 'text-green-600'
-                                : `text-${fileColors[file.name] || 'blue'}-600`
-                            }`}
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {file.name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {formatFileSize(file.size)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      {uploadStatus[file.name] === 'uploading' && (
+                        <div className="w-48">
+                          <Progress
+                            value={uploadProgress}
+                            className="max-w-full"
+                            aria-label={`${file.name} 업로드 진행률`}
                           />
                         </div>
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {file.name}
+                      )}
+                      {uploadStatus[file.name] === 'success' && (
+                        <Badge variant="outline">
+                          <Icon icon="lucide:check" className="w-4 h-4 mr-1" />
+                          업로드 성공!
+                        </Badge>
+                      )}
+                      {uploadStatus[file.name] === 'error' && (
+                        <div className="flex items-center space-x-2">
+                          <p className="text-sm text-red-600">
+                            업로드 실패! 다시 시도해주세요.
                           </p>
-                          <p className="text-sm text-gray-500">
-                            {formatFileSize(file.size)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        {uploadStatus[file.name] === 'uploading' && (
-                          <div className="w-48">
-                            <Progress
-                              value={uploadProgress}
-                              className="max-w-full"
-                              aria-label={`${file.name} 업로드 진행률`}
-                            />
-                          </div>
-                        )}
-                        {uploadStatus[file.name] === 'success' && (
-                          <Badge variant="outline">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            aria-label="업로드 재시도"
+                          >
                             <Icon
-                              icon="lucide:check"
+                              icon="lucide:refresh-cw"
                               className="w-4 h-4 mr-1"
                             />
-                            업로드 성공!
-                          </Badge>
-                        )}
-                        {uploadStatus[file.name] === 'error' && (
-                          <div className="flex items-center space-x-2">
-                            <p className="text-sm text-red-600">
-                              업로드 실패! 다시 시도해주세요.
-                            </p>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              aria-label="업로드 재시도"
-                            >
-                              <Icon
-                                icon="lucide:refresh-cw"
-                                className="w-4 h-4 mr-1"
-                              />
-                              다시 시도
-                            </Button>
-                          </div>
-                        )}
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => onFileRemove(index)}
-                          aria-label={`${file.name} 파일 삭제`}
-                        >
-                          <Icon icon="lucide:trash-2" className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                            다시 시도
+                          </Button>
+                        </div>
+                      )}
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => onFileRemove(index)}
+                        aria-label={`${file.name} 파일 삭제`}
+                      >
+                        <Icon icon="lucide:trash-2" className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -428,55 +415,15 @@ function FileUpload({
             }`}
             style={showCarousel ? { scrollBehavior: 'smooth' } : {}}
           >
-            <AnimatePresence>
-              {showCarousel
-                ? previews
-                    .slice(currentSlide * 5, currentSlide * 5 + 5)
-                    .map((preview, index) => (
-                      <motion.div
-                        key={`${preview}-${index}`}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Card className="relative overflow-hidden group">
-                          <img
-                            src={preview}
-                            alt={`미리보기 ${currentSlide * 5 + index + 1}`}
-                            className="object-cover w-full aspect-square"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/40 group-hover:opacity-100">
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute top-2 right-2"
-                              onClick={() =>
-                                onFileRemove(currentSlide * 5 + index)
-                              }
-                              aria-label={`이미지 ${
-                                currentSlide * 5 + index + 1
-                              } 삭제`}
-                            >
-                              <Icon icon="lucide:trash-2" className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    ))
-                : previews.map((preview, index) => (
-                    <motion.div
-                      key={`${preview}-${index}`}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.2 }}
-                    >
+            {showCarousel
+              ? previews
+                  .slice(currentSlide * 5, currentSlide * 5 + 5)
+                  .map((preview, index) => (
+                    <div key={`${preview}-${index}`}>
                       <Card className="relative overflow-hidden group">
                         <img
                           src={preview}
-                          alt={`미리보기 ${index + 1}`}
+                          alt={`미리보기 ${currentSlide * 5 + index + 1}`}
                           className="object-cover w-full aspect-square"
                         />
                         <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/40 group-hover:opacity-100">
@@ -485,16 +432,42 @@ function FileUpload({
                             variant="destructive"
                             size="sm"
                             className="absolute top-2 right-2"
-                            onClick={() => onFileRemove(index)}
-                            aria-label={`이미지 ${index + 1} 삭제`}
+                            onClick={() =>
+                              onFileRemove(currentSlide * 5 + index)
+                            }
+                            aria-label={`이미지 ${
+                              currentSlide * 5 + index + 1
+                            } 삭제`}
                           >
                             <Icon icon="lucide:trash-2" className="w-4 h-4" />
                           </Button>
                         </div>
                       </Card>
-                    </motion.div>
-                  ))}
-            </AnimatePresence>
+                    </div>
+                  ))
+              : previews.map((preview, index) => (
+                  <div key={`${preview}-${index}`}>
+                    <Card className="relative overflow-hidden group">
+                      <img
+                        src={preview}
+                        alt={`미리보기 ${index + 1}`}
+                        className="object-cover w-full aspect-square"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/40 group-hover:opacity-100">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => onFileRemove(index)}
+                          aria-label={`이미지 ${index + 1} 삭제`}
+                        >
+                          <Icon icon="lucide:trash-2" className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+                ))}
           </div>
         </div>
       )}
@@ -503,4 +476,4 @@ function FileUpload({
 }
 
 export default FileUpload;
-//====여기까지 수정됨====
+//====수정됨====

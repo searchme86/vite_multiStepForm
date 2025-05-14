@@ -1,10 +1,9 @@
-//====여기부터 수정됨====
+//====수정됨====
 // StepProgress.tsx: 폼 진행 단계를 시각적으로 표시
 // - 의미: 현재 단계와 진행 상황을 사용자에게 보여줌
 // - 사용 이유: 사용자 네비게이션과 진행 상태 추적
 // - 비유: 등산 경로의 이정표
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 
 interface StepProgressProps {
@@ -22,7 +21,7 @@ function StepProgress({ steps, currentStep, onStepClick }: StepProgressProps) {
           const isActive = index === currentStep;
           return (
             <React.Fragment key={index}>
-              <motion.button
+              <button
                 type="button"
                 onClick={() => onStepClick && onStepClick(index)}
                 className={`relative flex items-center justify-center w-10 h-10 rounded-full ${
@@ -32,11 +31,6 @@ function StepProgress({ steps, currentStep, onStepClick }: StepProgressProps) {
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-500'
                 }`}
-                initial={false}
-                animate={{
-                  scale: isActive ? 1.1 : 1,
-                }}
-                transition={{ duration: 0.3 }}
                 aria-current={isActive ? 'step' : undefined}
                 aria-label={`Step ${index + 1}: ${step}`}
               >
@@ -45,9 +39,9 @@ function StepProgress({ steps, currentStep, onStepClick }: StepProgressProps) {
                 ) : (
                   <span className="text-sm font-medium">{index + 1}</span>
                 )}
-              </motion.button>
+              </button>
               <div
-                className="hidden md:block absolute mt-16"
+                className="absolute hidden mt-16 md:block"
                 style={{
                   left: `calc(${(100 / (steps.length - 1)) * index}% - ${
                     index === 0
@@ -80,14 +74,12 @@ function StepProgress({ steps, currentStep, onStepClick }: StepProgressProps) {
               </div>
               {index < steps.length - 1 && (
                 <div className="flex-1 mx-2">
-                  <div className="h-1 relative bg-gray-200">
-                    <motion.div
+                  <div className="relative h-1 bg-gray-200">
+                    <div
                       className="absolute h-full bg-blue-600"
-                      initial={{ width: '0%' }}
-                      animate={{
+                      style={{
                         width: isCompleted ? '100%' : isActive ? '50%' : '0%',
                       }}
-                      transition={{ duration: 0.5 }}
                     />
                   </div>
                 </div>
@@ -101,4 +93,4 @@ function StepProgress({ steps, currentStep, onStepClick }: StepProgressProps) {
 }
 
 export default StepProgress;
-//====여기까지 수정됨====
+//====수정됨====
