@@ -9,6 +9,7 @@
 //   3. 로컬스토리지에서 탭별 데이터 복원
 //   4. react-hot-toast로 사용자 피드백
 // - 관련 키워드: react-hook-form, shadcn/ui, Button, react-hot-toast
+
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Button } from './ui/button';
@@ -19,7 +20,7 @@ import toast from 'react-hot-toast';
 // - 타입: { tab: string }
 // - 의미: 현재 탭 식별자로, 가이드와 저장 데이터 구분
 interface PostGuidelinesProps {
-  tab: 'basic' | 'tags' | 'media';
+  tab: 'basic' | 'tags' | 'media' | 'preview';
 }
 
 // 상수: 탭별 작성 유의사항
@@ -30,18 +31,22 @@ interface PostGuidelinesProps {
 const guidelinesByTab: Record<string, string[]> = {
   basic: [
     '제목은 5자 이상 100자 이하로 작성해주세요.',
-    '내용은 100자 이상 작성해주세요.',
+    '요약은 10자 이상 작성해주세요.',
     '카테고리를 반드시 선택해주세요.',
   ],
   tags: [
     '최소 1개 이상의 태그를 추가해주세요.',
     '태그는 최대 5개까지 입력 가능합니다.',
-    '태그는 고유해야 합니다.',
+    '마크다운으로 본문을 작성해주세요.',
   ],
   media: [
     '대표 이미지는 최소 1개 이상 업로드해주세요.',
     '이미지는 최대 10개까지 업로드 가능합니다.',
     '지원 형식: JPG, PNG, SVG (각 10MB 이하).',
+  ],
+  preview: [
+    '모든 입력 데이터를 확인해주세요.',
+    '게시 전 최종 검토를 진행하세요.',
   ],
 };
 
@@ -82,9 +87,18 @@ function PostGuidelines({ tab }: PostGuidelinesProps) {
       // - 의미: 탭별로 복원할 필드 정의
       // - 사용 이유: 탭별 데이터만 복원
       const fieldsByTab: Record<string, (keyof BlogPostFormData)[]> = {
-        basic: ['title', 'content', 'category'],
-        tags: ['tags'],
+        basic: ['title', 'summary', 'content', 'category'],
+        tags: ['tags', 'markdown'],
         media: ['coverImage'],
+        preview: [
+          'title',
+          'summary',
+          'content',
+          'markdown',
+          'category',
+          'tags',
+          'coverImage',
+        ],
       };
       // 필드 복원
       // - 의미: 폼 상태 업데이트

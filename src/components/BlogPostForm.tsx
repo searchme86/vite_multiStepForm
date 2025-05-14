@@ -1,6 +1,6 @@
 //====여기부터 수정됨====
 // BlogPostForm.tsx: 블로그 포스트 작성 폼
-// - 의미: 기본 정보, 태그, 미디어 입력 관리 및 자동저장/임시저장 통합
+// - 의미: 기본 정보, 본문 작성, 미디어, 미리보기 입력 관리 및 저장
 // - 사용 이유: 통합 폼으로 사용자 입력 처리 및 저장 기능 제공
 // - 비유: 블로그 작성 노트북, 각 탭은 페이지, 저장 버튼은 책갈피
 // - 작동 메커니즘:
@@ -9,6 +9,7 @@
 //   3. 자동저장 주기적 실행, 임시저장 수동 실행
 //   4. 로컬스토리지로 데이터 저장
 // - 관련 키워드: react-hook-form, shadcn/ui, localStorage, flexbox
+
 import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
@@ -19,6 +20,7 @@ import { Icon } from '@iconify/react';
 import BasicInfoSection from './BasicInfoSection';
 import ContentSection from './ContentSection';
 import MediaSection from './MediaSection';
+import PreviewSection from './PreviewSection';
 import NotificationProvider from './Notification';
 import { BlogPostFormData, blogPostSchema } from '../types/blog-post';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,8 +38,9 @@ function BlogPostForm() {
     resolver: zodResolver(blogPostSchema),
     defaultValues: {
       title: '',
-      description: '',
+      summary: '',
       content: '',
+      markdown: '',
       category: '',
       tags: [],
       coverImage: [],
@@ -132,7 +135,6 @@ function BlogPostForm() {
             {/* 저장 설정 */}
             {/* - 의미: 자동저장 및 임시저장 UI */}
             {/* - 사용 이유: 모든 탭의 데이터를 통합 관리 */}
-            {/* - 비유: 노트북의 공통 저장 버튼 */}
             <div className="mb-6 space-y-4">
               <div className="flex flex-col items-start justify-between p-4 border rounded-lg sm:flex-row sm:items-center">
                 <div className="space-y-0.5 mb-2 sm:mb-0">
@@ -175,26 +177,33 @@ function BlogPostForm() {
                   onValueChange={setCurrentTab}
                 >
                   <TabsList className="flex w-full h-auto gap-6 p-1 mb-6 bg-gray-100 rounded-lg">
-                    {['basic', 'tags', 'media'].map((tab) => (
+                    {['basic', 'content', 'media', 'preview'].map((tab) => (
                       <TabsTrigger
                         key={tab}
                         value={tab}
                         className="w-full text-sm font-medium rounded-md sm:text-base data-[state=active]:text-blue-600 data-[state=active]:font-semibold"
                       >
                         {tab === 'basic' && '기본 정보'}
-                        {tab === 'tags' && '태그'}
+                        {tab === 'content' && '본문 작성'}
                         {tab === 'media' && '미디어'}
+                        {tab === 'preview' && '미리보기'}
                       </TabsTrigger>
                     ))}
                   </TabsList>
                   <TabsContent value="basic" className="mt-0">
                     <BasicInfoSection />
                   </TabsContent>
-                  <TabsContent value="tags" className="mt-0">
+                  <TabsContent value="content" className="mt-0">
                     <ContentSection />
                   </TabsContent>
                   <TabsContent value="media" className="mt-0">
                     <MediaSection />
+                  </TabsContent>
+                  <TabsContent value="preview" className="mt-0">
+                    <PreviewSection />
+                    {/* 게시 버튼 */}
+                    {/* - 의미: 폼 제출 트리거 */}
+                    {/* - 사용 이유: 최종 데이터 게시 */}
                     <div className="flex justify-end mt-6">
                       <Button
                         type="submit"

@@ -7,7 +7,9 @@
 //   1. FileUpload로 파일 선택
 //   2. FileTableView로 파일 목록 표시
 //   3. PostGuidelines로 가이드와 자동저장 불러오기 제공
+//   4. 날짜 표시 추가
 // - 관련 키워드: react-hook-form, shadcn/ui, File API, flexbox
+
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import FileUpload from './FileUpload';
@@ -15,6 +17,25 @@ import FileTableView from './FileTableView';
 import PostGuidelines from './PostGuidelines';
 import { FormMessage } from './ui/form';
 import { BlogPostFormData } from '../types/blog-post';
+
+// 함수: 현재 날짜 포맷팅
+// - 타입: () => string
+// - 의미: 현재 년, 월, 일을 "YYYY-MM-DD" 형식으로 반환
+// - 사용 이유: 폼 우측 상단에 작성 날짜 표시
+// - Fallback: 현재 날짜 사용
+const formatCurrentDate = (): string => {
+  // 날짜 객체 생성
+  // - 의미: 현재 날짜 가져오기
+  // - 사용 이유: 실시간 날짜 표시
+  const today = new Date();
+  // 포맷팅
+  // - 의미: 년, 월, 일을 문자열로 변환
+  // - 사용 이유: 사용자 친화적 표시
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 // 함수: 미디어 업로드 섹션
 // - 의미: 파일 업로드 및 관리 UI 렌더링
@@ -128,26 +149,37 @@ function MediaSection() {
       {/* - 의미: 작성 가이드 및 자동저장 불러오기 표시 */}
       {/* - 사용 이유: 사용자에게 입력 지침 제공 */}
       <PostGuidelines tab="media" />
-      {/* 파일 업로드 */}
-      {/* - 의미: 파일 업로드 UI */}
-      {/* - 사용 이유: 이미지 업로드 및 미리보기 */}
-      <FileUpload
-        files={fileList.map((f) => f.file)}
-        previews={fileList.map((f) => f.preview)}
-        onFilesSelected={handleFileSelect}
-        onFileRemove={handleFileRemove}
-        uploadProgress={uploadProgress}
-        randomColors={randomColors}
-      />
-      {errors.coverImage && (
-        <FormMessage>{errors.coverImage.message}</FormMessage>
-      )}
-      {/* 파일 테이블 뷰 */}
-      {/* - 의미: 업로드된 파일 목록 표시 */}
-      {/* - 사용 이유: 파일 관리 및 삭제 */}
-      {fileList.length > 0 && (
-        <FileTableView files={fileList} onFileRemove={handleBulkFileRemove} />
-      )}
+      {/* 날짜 및 폼 컨테이너 */}
+      {/* - 의미: 날짜와 파일 업로드 UI 배치 */}
+      {/* - 사용 이유: 날짜 우측 상단 고정 */}
+      <div className="flex flex-col gap-6">
+        {/* 날짜 표시 */}
+        {/* - 의미: 현재 작성 날짜 표시 */}
+        {/* - 사용 이유: 작성 시점 제공 */}
+        <span className="text-sm text-gray-500" style={{ marginLeft: 'auto' }}>
+          작성 날짜: {formatCurrentDate()}
+        </span>
+        {/* 파일 업로드 */}
+        {/* - 의미: 파일 업로드 UI */}
+        {/* - 사용 이유: 이미지 업로드 및 미리보기 */}
+        <FileUpload
+          files={fileList.map((f) => f.file)}
+          previews={fileList.map((f) => f.preview)}
+          onFilesSelected={handleFileSelect}
+          onFileRemove={handleFileRemove}
+          uploadProgress={uploadProgress}
+          randomColors={randomColors}
+        />
+        {errors.coverImage && (
+          <FormMessage>{errors.coverImage.message}</FormMessage>
+        )}
+        {/* 파일 테이블 뷰 */}
+        {/* - 의미: 업로드된 파일 목록 표시 */}
+        {/* - 사용 이유: 파일 관리 및 삭제 */}
+        {fileList.length > 0 && (
+          <FileTableView files={fileList} onFileRemove={handleBulkFileRemove} />
+        )}
+      </div>
     </div>
   );
 }

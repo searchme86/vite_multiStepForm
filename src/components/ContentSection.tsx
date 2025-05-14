@@ -1,25 +1,47 @@
 //====여기부터 수정됨====
-// ContentSection.tsx: 블로그 포스트의 태그 입력 섹션
-// - 의미: 태그 입력 및 관리 UI 제공
-// - 사용 이유: 포스트 태그를 사용자 입력으로 추가/삭제
-// - 비유: 블로그 포스트에 붙이는 스티커(태그), 사용자가 스티커 붙이고 떼기
+// ContentSection.tsx: 블로그 포스트의 본문 작성 섹션 (태그 및 마크다운)
+// - 의미: 태그와 마크다운 콘텐츠 입력 관리
+// - 사용 이유: 포스트 태그와 본문 작성 UI 제공
+// - 비유: 블로그 포스트에 스티커(태그) 붙이고 책 내용(마크다운) 쓰기
 // - 작동 메커니즘:
 //   1. useFormContext로 폼 상태 관리
-//   2. 태그 입력 및 추가/삭제 로직 구현
-//   3. PostGuidelines로 가이드라인 표시
-//   4. 타이틀 복구, w-full 스타일 적용
-// - 관련 키워드: react-hook-form, shadcn/ui, flexbox, Input
+//   2. TagAutoComplete로 태그 입력 및 추천
+//   3. MarkdownEditor로 마크다운 입력 및 미리보기
+//   4. PostGuidelines로 가이드라인 표시
+//   5. 날짜 표시 추가
+// - 관련 키워드: react-hook-form, shadcn/ui, flexbox, react-markdown
+
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { FormItem, FormMessage } from './ui/form';
 import { BlogPostFormData } from '../types/blog-post';
 import PostGuidelines from './PostGuidelines';
+import TagAutoComplete from './TagAutoComplete';
+import MarkdownEditor from './MarkdownEditor';
 
-// 함수: 태그 섹션
-// - 의미: 태그 입력 및 관리 UI 렌더링
-// - 사용 이유: 블로그 포스트 태그 입력
+// 함수: 현재 날짜 포맷팅
+// - 타입: () => string
+// - 의미: 현재 년, 월, 일을 "YYYY-MM-DD" 형식으로 반환
+// - 사용 이유: 폼 우측 상단에 작성 날짜 표시
+// - Fallback: 현재 날짜 사용
+const formatCurrentDate = (): string => {
+  // 날짜 객체 생성
+  // - 의미: 현재 날짜 가져오기
+  // - 사용 이유: 실시간 날짜 표시
+  const today = new Date();
+  // 포맷팅
+  // - 의미: 년, 월, 일을 문자열로 변환
+  // - 사용 이유: 사용자 친화적 표시
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 함수: 본문 작성 섹션
+// - 의미: 태그와 마크다운 입력 UI 렌더링
+// - 사용 이유: 블로그 포스트 본문 작성
 function ContentSection() {
   // 폼 컨텍스트
   // - 의미: 폼 데이터 및 유효성 검사 관리
@@ -40,45 +62,24 @@ function ContentSection() {
     formState: { errors },
   } = formContext;
 
-  // 상태: 임시 태그 입력
-  // - 의미: 사용자가 입력 중인 태그 값 추적
-  // - 사용 이유: 태그 추가 전 임시 저장
-  // - Fallback: 빈 문자열
-  const [tempTag, setTempTag] = React.useState('');
-
   // 값: 태그 배열
   // - 의미: 현재 폼의 태그 목록
   // - 사용 이유: 태그 렌더링 및 관리
   // - Fallback: 빈 배열
   const tags = watch('tags') || [];
 
-  // 핸들러: 태그 입력 변경
-  // - 의미: 임시 태그 입력 처리
-  // - 사용 이유: 사용자 입력을 임시 상태에 저장
-  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 상태 업데이트
-    // - 의미: tempTag 업데이트
-    // - 사용 이유: 실시간 입력 반영
-    setTempTag(e.target.value);
-  };
-
   // 핸들러: 태그 추가
-  // - 의미: 임시 태그를 태그 목록에 추가
+  // - 의미: 새로운 태그를 태그 목록에 추가
   // - 사용 이유: 사용자 입력을 폼 상태에 반영
-  const handleAddTag = () => {
+  const handleAddTag = (tag: string) => {
     // 유효성 검사
     // - 의미: 빈 태그 또는 중복 태그 방지
     // - 사용 이유: 데이터 무결성 유지
-    if (!tempTag.trim()) return;
-    if (tags.includes(tempTag.trim())) return;
+    if (!tag.trim() || tags.includes(tag)) return;
     // 태그 추가
     // - 의미: 태그 목록 업데이트
     // - 사용 이유: 새로운 태그를 폼 상태에 저장
-    setValue('tags', [...tags, tempTag.trim()], { shouldValidate: true });
-    // 임시 태그 초기화
-    // - 의미: 입력 필드 비우기
-    // - 사용 이유: 다음 태그 입력 준비
-    setTempTag('');
+    setValue('tags', [...tags, tag], { shouldValidate: true });
   };
 
   // 핸들러: 태그 삭제
@@ -105,57 +106,52 @@ function ContentSection() {
       {/* - 의미: 작성 가이드 및 자동저장 불러오기 표시 */}
       {/* - 사용 이유: 사용자에게 입력 지침 제공 */}
       <PostGuidelines tab="tags" />
-      {/* 폼 필드 컨테이너 */}
-      {/* - 의미: 태그 입력 및 목록을 세로로 정렬 */}
-      {/* - 사용 이유: flex로 간단한 세로 레이아웃 구현 */}
+      {/* 날짜 및 폼 컨테이너 */}
+      {/* - 의미: 날짜 표시와 폼 필드를 함께 관리 */}
+      {/* - 사용 이유: 날짜를 우측 상단에 고정 */}
       <div className="flex flex-col gap-6">
-        {/* 태그 입력 필드 */}
-        {/* - 의미: 태그 입력 및 추가 UI */}
-        {/* - 사용 이유: 새로운 태그 입력 */}
-        <FormItem>
-          <label className="text-sm font-medium">태그</label>{' '}
-          {/* 타이틀 복구 */}
-          <div className="flex w-full gap-2">
-            {' '}
-            {/* w-full 적용 */}
-            <Input
-              placeholder="태그를 입력하세요"
-              value={tempTag}
-              onChange={handleTagInputChange}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-              aria-label="태그 입력"
-              className="flex-1"
-            />
-            <Button type="button" onClick={handleAddTag} aria-label="태그 추가">
-              추가
-            </Button>
-          </div>
-          {errors.tags && <FormMessage>{errors.tags.message}</FormMessage>}
-        </FormItem>
-        {/* 태그 목록 */}
-        {/* - 의미: 추가된 태그 표시 */}
-        {/* - 사용 이유: 사용자에게 현재 태그 목록 제공 */}
-        <div className="flex flex-wrap w-full gap-2">
-          {' '}
-          {/* w-full 적용 */}
-          {tags.map((tag: string) => (
-            <div
-              key={tag}
-              className="flex items-center px-3 py-1 text-sm bg-gray-200 rounded-full"
-            >
-              <span>{tag}</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRemoveTag(tag)}
-                aria-label={`태그 ${tag} 삭제`}
-                className="ml-2"
+        {/* 날짜 표시 */}
+        {/* - 의미: 현재 작성 날짜 표시 */}
+        {/* - 사용 이유: 사용자에게 작성 시점 제공 */}
+        <span className="text-sm text-gray-500" style={{ marginLeft: 'auto' }}>
+          작성 날짜: {formatCurrentDate()}
+        </span>
+        {/* 폼 필드 컨테이너 */}
+        {/* - 의미: 태그와 마크다운 입력을 세로로 정렬 */}
+        {/* - 사용 이유: flex로 간단한 세로 레이아웃 구현 */}
+        <div className="flex flex-col gap-6">
+          {/* 태그 입력 */}
+          {/* - 의미: 태그 입력 및 추천 UI */}
+          {/* - 사용 이유: 포스트 태그 관리 */}
+          <TagAutoComplete onAddTag={handleAddTag} />
+          {/* 태그 목록 */}
+          {/* - 의미: 추가된 태그 표시 */}
+          {/* - 사용 이유: 사용자에게 현재 태그 목록 제공 */}
+          <div className="flex flex-wrap w-full gap-2">
+            {tags.map((tag: string) => (
+              <div
+                key={tag}
+                className="flex items-center px-3 py-1 text-sm bg-gray-200 rounded-full"
               >
-                &times;
-              </Button>
-            </div>
-          ))}
+                <span>{tag}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveTag(tag)}
+                  aria-label={`태그 ${tag} 삭제`}
+                  className="ml-2"
+                >
+                  ×
+                </Button>
+              </div>
+            ))}
+            {errors.tags && <FormMessage>{errors.tags.message}</FormMessage>}
+          </div>
+          {/* 마크다운 입력 */}
+          {/* - 의미: 마크다운 콘텐츠 입력 및 미리보기 */}
+          {/* - 사용 이유: 포스트 본문 작성 */}
+          <MarkdownEditor />
         </div>
       </div>
     </div>
