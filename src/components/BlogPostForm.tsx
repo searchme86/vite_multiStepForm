@@ -1,141 +1,33 @@
 //====여기부터 수정됨====
 // BlogPostForm.tsx: 블로그 포스트 작성 폼
-// - 의미: 블로그 포스트의 기본 정보, 미디어, 게시 옵션을 관리하는 메인 폼
-// - 사용 이유: 단일 폼으로 모든 입력 관리, 사용자 친화적 인터페이스 제공
-// - 비유: 블로그 포스트를 작성하는 노트북, 각 탭은 페이지(기본 정보, 미디어, 게시 옵션)
+// - 의미: 기본 정보, 태그, 미디어 입력 관리
+// - 사용 이유: 통합 폼으로 사용자 입력 처리
+// - 비유: 블로그 작성 노트북, 각 탭은 페이지
 // - 작동 메커니즘:
-//   1. useForm으로 폼 상태 초기화
-//   2. FormProvider로 하위 컴포넌트에 폼 컨텍스트 제공
-//   3. Tabs로 BasicInfoSection, MediaSection, PublishingOptions 전환
-//   4. NotificationProvider와 react-hot-toast로 알림 표시
-// - 관련 키워드: react-hook-form, shadcn/ui, Tabs, FormProvider, zod, react-hot-toast
+//   1. useForm으로 폼 초기화
+//   2. Tabs로 섹션 전환
+//   3. Framer Motion으로 탭 메뉴에 플로팅 및 슬라이드 애니메이션
+// - 관련 키워드: react-hook-form, shadcn/ui, Framer Motion
 import React from 'react';
-import { FormProvider, useForm, useFormContext } from 'react-hook-form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { FormProvider, useForm } from 'react-hook-form';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from './ui/form';
-import { Switch } from './ui/switch';
 import { Icon } from '@iconify/react';
+import { motion } from 'framer-motion';
 import BasicInfoSection from './BasicInfoSection';
+import ContentSection from './ContentSection';
 import MediaSection from './MediaSection';
 import NotificationProvider from './Notification';
 import { BlogPostFormData, blogPostSchema } from '../types/blog-post';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
 
-// 함수: 게시 옵션 섹션
-// - 의미: 초안 저장과 공개 여부 설정 UI, 토스트 팝업 트리거
-// - 사용 이유: 게시 옵션 관리 및 사용자 피드백 제공
-function PublishingOptions() {
-  // 폼 컨텍스트: react-hook-form 훅
-  // - 타입: UseFormReturn<BlogPostFormData>
-  // - 의미: 폼 상태 및 메서드 접근
-  // - 사용 이유: 중앙화된 폼 관리
-  const { control } = useFormContext<BlogPostFormData>();
-
-  return (
-    // 컨테이너: 게시 옵션 UI
-    // - 의미: 토글 스위치와 토스트 포함
-    <div className="space-y-6">
-      {/* 초안 저장 토글 */}
-      <FormField
-        control={control}
-        name="isDraft"
-        render={({ field }) => (
-          <FormItem className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="space-y-0.5">
-              <FormLabel>초안으로 저장</FormLabel>
-              <p className="text-sm text-gray-500">
-                초안으로 저장하면 나중에 수정할 수 있습니다.
-              </p>
-            </div>
-            <FormControl>
-              <Switch
-                checked={field.value}
-                onCheckedChange={(checked) => {
-                  field.onChange(checked);
-                  // 토스트: 초안 상태 변경 시 팝업 표시
-                  // - 의미: 사용자에게 상태 변경 알림
-                  // - 사용 이유: 즉각적인 피드백 제공
-                  toast.success(
-                    checked
-                      ? '포스트가 초안으로 저장됩니다.'
-                      : '포스트가 초안에서 해제되었습니다.',
-                    {
-                      duration: 3000, // 3초 후 자동 사라짐
-                    }
-                  );
-                }}
-                aria-label="초안으로 저장"
-              />
-            </FormControl>
-            {field.value && (
-              <FormMessage>
-                초안으로 저장됩니다. 공개하려면 토글을 끄세요.
-              </FormMessage>
-            )}
-          </FormItem>
-        )}
-      />
-      {/* 공개 여부 토글 */}
-      <FormField
-        control={control}
-        name="isPublic"
-        render={({ field }) => (
-          <FormItem className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="space-y-0.5">
-              <FormLabel>공개 포스트</FormLabel>
-              <p className="text-sm text-gray-500">
-                공개로 설정하면 모든 사용자가 볼 수 있습니다.
-              </p>
-            </div>
-            <FormControl>
-              <Switch
-                checked={field.value}
-                onCheckedChange={(checked) => {
-                  field.onChange(checked);
-                  // 토스트: 공개 상태 변경 시 팝업 표시
-                  // - 의미: 사용자에게 상태 변경 알림
-                  // - 사용 이유: 즉각적인 피드백 제공
-                  toast.success(
-                    checked
-                      ? '포스트가 공개로 설정되었습니다.'
-                      : '포스트가 비공개로 설정되었습니다.',
-                    {
-                      duration: 3000, // 3초 후 자동 사라짐
-                    }
-                  );
-                }}
-                aria-label="공개 여부"
-              />
-            </FormControl>
-            {!field.value && (
-              <FormMessage>
-                비공개로 설정됩니다. 초안과 함께 사용할 수 있습니다.
-              </FormMessage>
-            )}
-          </FormItem>
-        )}
-      />
-    </div>
-  );
-}
-
-// 함수: 블로그 포스트 폼 컴포넌트
-// - 의미: 폼 UI와 로직 통합
+// 함수: 블로그 포스트 폼
 function BlogPostForm() {
-  // 폼 상태: react-hook-form 훅
-  // - 타입: UseFormReturn<BlogPostFormData>
-  // - 의미: 폼 데이터, 유효성 검사, 제출 로직 관리
-  // - 사용 이유: 선언적 폼 관리
-  // - Fallback: 기본값으로 빈 폼 데이터 제공
+  // 폼 상태
+  // - 의미: 폼 데이터 및 유효성 검사 관리
+  // - 사용 이유: react-hook-form으로 선언적 폼 관리
   const methods = useForm<BlogPostFormData>({
     resolver: zodResolver(blogPostSchema),
     defaultValues: {
@@ -151,82 +43,108 @@ function BlogPostForm() {
     },
   });
 
-  // 함수: 폼 제출 핸들러
-  // - 의미: 폼 데이터를 서버로 전송(시뮬레이션)
-  // - 사용 이유: 사용자 입력 저장
+  // 상태: 현재 탭
+  // - 의미: 활성 탭 추적
+  // - 사용 이유: methods.watch('tab') 대신 UI 상태 관리
+  // - Fallback: 기본값 'basic'
+  const [currentTab, setCurrentTab] = React.useState('basic');
+
+  // 제출 핸들러
+  // - 의미: 폼 데이터 제출
+  // - 사용 이유: 사용자 입력 저장 및 피드백
   const onSubmit = (data: BlogPostFormData) => {
     console.log('Form submitted:', data);
-    // 토스트: 제출 성공 시 팝업 표시
-    // - 의미: 사용자에게 제출 완료 알림
-    // - 사용 이유: 작업 완료 피드백
-    toast.success('포스트가 성공적으로 제출되었습니다.', {
-      duration: 3000,
-    });
+    toast.success('포스트가 성공적으로 제출되었습니다.', { duration: 3000 });
+  };
+
+  // 탭 애니메이션
+  // - 의미: 탭 메뉴에 플로팅 및 호버 효과
+  const tabVariants = {
+    inactive: { y: 0, opacity: 0.7, scale: 1 },
+    active: { y: -2, opacity: 1, scale: 1.05 },
+  };
+
+  // 슬라이더 애니메이션
+  // - 의미: 활성 탭 아래 슬라이딩 배경
+  const sliderVariants = {
+    slide: (index: number) => ({
+      x: `${index * 100}%`,
+      transition: { duration: 0.3, ease: 'easeOut' },
+    }),
   };
 
   return (
-    // 컨테이너: 폼 전체 UI
-    // - 의미: 탭, 제출 버튼, 알림 포함
+    // 컨테이너: 반응형 레이아웃
+    // - 의미: 모바일, 태블릿, 데스크톱 지원
     <NotificationProvider>
-      <div className="max-w-4xl py-8 mx-auto">
-        <Card>
+      <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 md:px-8">
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>새 블로그 포스트 작성</CardTitle>
+            <CardTitle className="text-2xl">새 블로그 포스트 작성</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* FormProvider: 폼 컨텍스트 제공 */}
-            {/* - 의미: 하위 컴포넌트에 폼 상태 전달 */}
             <FormProvider {...methods}>
               <form
                 onSubmit={methods.handleSubmit(onSubmit)}
-                className="space-y-8"
+                className="space-y-6"
               >
-                {/* 탭: 섹션 전환 */}
-                <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="basic">기본 정보</TabsTrigger>
-                    <TabsTrigger value="media">미디어</TabsTrigger>
-                    <TabsTrigger value="publishing">게시 옵션</TabsTrigger>
+                <Tabs
+                  defaultValue="basic"
+                  className="w-full"
+                  onValueChange={setCurrentTab}
+                >
+                  <TabsList className="relative grid w-full grid-cols-3 p-1 mb-6 bg-gray-100 rounded-lg">
+                    {/* 슬라이더: 활성 탭 표시 */}
+                    <motion.div
+                      className="absolute top-0 left-0 h-full bg-white rounded-md shadow-sm"
+                      style={{ width: '33.33%' }}
+                      variants={sliderVariants}
+                      custom={['basic', 'tags', 'media'].indexOf(currentTab)}
+                      animate="slide"
+                    />
+                    {['basic', 'tags', 'media'].map((tab) => (
+                      <motion.div
+                        key={tab}
+                        variants={tabVariants}
+                        initial="inactive"
+                        animate={currentTab === tab ? 'active' : 'inactive'}
+                        whileHover={{ scale: 1.1, y: -4 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="relative z-10"
+                      >
+                        <TabsTrigger
+                          value={tab}
+                          className="w-full py-2 text-sm font-medium rounded-md sm:text-base data-[state=active]:text-blue-600 data-[state=active]:font-semibold"
+                        >
+                          {tab === 'basic' && '기본 정보'}
+                          {tab === 'tags' && '태그'}
+                          {tab === 'media' && '미디어'}
+                        </TabsTrigger>
+                      </motion.div>
+                    ))}
                   </TabsList>
-                  <TabsContent value="basic">
+                  <TabsContent value="basic" className="mt-0">
                     <BasicInfoSection />
                   </TabsContent>
-                  <TabsContent value="media">
-                    <MediaSection />
+                  <TabsContent value="tags" className="mt-0">
+                    <ContentSection />
                   </TabsContent>
-                  <TabsContent value="publishing">
-                    <PublishingOptions />
+                  <TabsContent value="media" className="mt-0">
+                    <MediaSection />
+                    <div className="flex justify-end mt-6">
+                      <Button
+                        type="submit"
+                        disabled={methods.formState.isSubmitting}
+                        aria-label="게시"
+                        className="w-full sm:w-auto"
+                      >
+                        <Icon icon="lucide:send" className="w-4 h-4 mr-2" />
+                        게시
+                      </Button>
+                    </div>
                   </TabsContent>
                 </Tabs>
-                {/* 제출 버튼 */}
-                <div className="flex justify-end space-x-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      methods.setValue('isDraft', true);
-                      // 토스트: 초안 저장 버튼 클릭 시 팝업
-                      // - 의미: 초안 저장 알림
-                      // - 사용 이유: 사용자 피드백
-                      toast.success('포스트가 초안으로 저장됩니다.', {
-                        duration: 3000,
-                      });
-                    }}
-                    disabled={methods.formState.isSubmitting}
-                    aria-label="초안으로 저장"
-                  >
-                    <Icon icon="lucide:save" className="w-4 h-4 mr-2" />
-                    초안으로 저장
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={methods.formState.isSubmitting}
-                    aria-label="게시"
-                  >
-                    <Icon icon="lucide:send" className="w-4 h-4 mr-2" />
-                    게시
-                  </Button>
-                </div>
               </form>
             </FormProvider>
           </CardContent>
