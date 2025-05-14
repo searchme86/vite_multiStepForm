@@ -1,4 +1,3 @@
-//====여기부터 수정됨====
 // BasicInfoSection.tsx: 블로그 포스트의 기본 정보 입력 섹션
 // - 의미: 제목, 요약, 내용, 카테고리 입력 관리
 // - 사용 이유: 핵심 정보 입력을 위한 UI 제공
@@ -85,7 +84,7 @@ function BasicInfoSection() {
   // - 사용 이유: 실시간 입력값 반영
   // - Fallback: 값이 없으면 빈 문자열 또는 기본값
   const titleValue = watch('title') || '';
-  const summaryValue = watch('summary') || ''; // 요약 필드 추가
+  const summaryValue = watch('summary') || '';
   const contentValue = watch('content') || '';
   const categoryValue = watch('category') || '';
 
@@ -233,4 +232,3 @@ function BasicInfoSection() {
 }
 
 export default BasicInfoSection;
-//====여기까지 수정됨====

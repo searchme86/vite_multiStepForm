@@ -1,0 +1,10 @@
+/* styles.css: 검색어 강조를 위한 CSS */
+.search-highlight {
+  background-color: #fef08a; /* 기본 노란색 강조 */
+}
+.search-highlight.bg-blue-200 {
+  background-color: #bfdbfe; /* 현재 매칭 파란색 */
+}
+.search-highlight.bg-yellow-200 {
+  background-color: #fef08a; /* 나머지 노란색 */
+}

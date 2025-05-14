@@ -1,4 +1,3 @@
-//====여기부터 수정됨====
 // ContentSection.tsx: 블로그 포스트의 본문 작성 섹션 (태그 및 마크다운)
 // - 의미: 태그와 마크다운 콘텐츠 입력 관리
 // - 사용 이유: 포스트 태그와 본문 작성 UI 제공
@@ -6,7 +5,7 @@
 // - 작동 메커니즘:
 //   1. useFormContext로 폼 상태 관리
 //   2. TagAutoComplete로 태그 입력 및 추천
-//   3. MarkdownEditor로 마크다운 입력 및 미리보기
+//   3. MarkdownEditor와 MarkdownPreview로 마크다운 입력 및 미리보기
 //   4. PostGuidelines로 가이드라인 표시
 //   5. 날짜 표시 추가
 // - 관련 키워드: react-hook-form, shadcn/ui, flexbox, react-markdown
@@ -19,6 +18,7 @@ import { BlogPostFormData } from '../types/blog-post';
 import PostGuidelines from './PostGuidelines';
 import TagAutoComplete from './TagAutoComplete';
 import MarkdownEditor from './MarkdownEditor';
+import MarkdownPreview from './MarkdownPreview';
 
 // 함수: 현재 날짜 포맷팅
 // - 타입: () => string
@@ -148,10 +148,13 @@ function ContentSection() {
             ))}
             {errors.tags && <FormMessage>{errors.tags.message}</FormMessage>}
           </div>
-          {/* 마크다운 입력 */}
+          {/* 마크다운 입력 및 미리보기 */}
           {/* - 의미: 마크다운 콘텐츠 입력 및 미리보기 */}
-          {/* - 사용 이유: 포스트 본문 작성 */}
-          <MarkdownEditor />
+          {/* - 사용 이유: 포스트 본문 작성 및 검토 */}
+          <div className="flex flex-col gap-6 md:flex-row">
+            <MarkdownEditor />
+            <MarkdownPreview />
+          </div>
         </div>
       </div>
     </div>
@@ -159,4 +162,3 @@ function ContentSection() {
 }
 
 export default ContentSection;
-//====여기까지 수정됨====

@@ -1,4 +1,3 @@
-//====여기부터 수정됨====
 // BlogPostForm.tsx: 블로그 포스트 작성 폼
 // - 의미: 기본 정보, 본문 작성, 미디어, 미리보기 입력 관리 및 저장
 // - 사용 이유: 통합 폼으로 사용자 입력 처리 및 저장 기능 제공
@@ -41,6 +40,7 @@ function BlogPostForm() {
       summary: '',
       content: '',
       markdown: '',
+      searchTerm: '',
       category: '',
       tags: [],
       coverImage: [],
@@ -227,4 +227,3 @@ function BlogPostForm() {
 }
 
 export default BlogPostForm;
-//====여기까지 수정됨====

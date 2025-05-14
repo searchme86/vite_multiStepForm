@@ -1,4 +1,3 @@
-//====여기부터 수정됨====
 // PostGuidelines.tsx: 포스트 작성 가이드와 자동저장 불러오기 UI
 // - 의미: 탭별 작성 유의사항과 저장된 데이터 불러오기 관리
 // - 사용 이유: 사용자 지침 제공 및 탭별 데이터 복원
@@ -88,13 +87,14 @@ function PostGuidelines({ tab }: PostGuidelinesProps) {
       // - 사용 이유: 탭별 데이터만 복원
       const fieldsByTab: Record<string, (keyof BlogPostFormData)[]> = {
         basic: ['title', 'summary', 'content', 'category'],
-        tags: ['tags', 'markdown'],
+        tags: ['tags', 'markdown', 'searchTerm'],
         media: ['coverImage'],
         preview: [
           'title',
           'summary',
           'content',
           'markdown',
+          'searchTerm',
           'category',
           'tags',
           'coverImage',
@@ -157,4 +157,3 @@ function PostGuidelines({ tab }: PostGuidelinesProps) {
 }
 
 export default PostGuidelines;
-//====여기까지 수정됨====
