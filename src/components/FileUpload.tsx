@@ -1,4 +1,4 @@
-//====수정됨====
+//====여기부터 수정됨====
 // FileUpload.tsx: 파일 업로드 및 미리보기 UI
 // - 의미: 파일 드래그 앤 드롭, 선택, 업로드 상태 표시
 // - 사용 이유: 사용자 친화적인 파일 업로드 경험 제공
@@ -6,8 +6,8 @@
 // - 작동 메커니즘:
 //   1. 드래그 앤 드롭 또는 파일 입력으로 파일 선택
 //   2. 업로드 진행률과 상태 표시
-//   3. 이미지 미리보기를 그리드 또는 캐러셀로 렌더링
-// - 관련 키워드: shadcn/ui, Radix UI, File API, Tailwind CSS
+//   3. 이미지 미리보기를 플렉스 레이아웃으로 렌더링
+// - 관련 키워드: shadcn/ui, Radix UI, File API, Tailwind CSS, flexbox
 import React from 'react';
 import { Card, CardContent } from './ui/card';
 import { Progress } from './ui/progress';
@@ -38,48 +38,58 @@ function FileUpload({
   // 참조: 파일 입력 요소
   // - 타입: React.RefObject<HTMLInputElement>
   // - 의미: 파일 선택 다이얼로그 제어
+  // - 사용 이유: 파일 입력 UI 숨김 처리
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   // 참조: 드롭 존 요소
   // - 타입: React.RefObject<HTMLDivElement>
   // - 의미: 드래그 앤 드롭 영역 제어
+  // - 사용 이유: 드롭 존 이벤트 처리
   const dropZoneRef = React.useRef<HTMLDivElement>(null);
   // 상태: 드래그 중 여부
   // - 타입: boolean
   // - 의미: 드래그 상태에 따라 UI 변경
+  // - 사용 이유: 드래그 중 배경색 변경
   const [isDragging, setIsDragging] = React.useState(false);
   // 상태: 현재 캐러셀 슬라이드
   // - 타입: number
   // - 의미: 캐러셀 이미지 그룹 인덱스
+  // - 사용 이유: 이미지 슬라이드 관리
   const [currentSlide, setCurrentSlide] = React.useState(0);
   // 상태: 업로드 상태
   // - 타입: Record<string, "uploading" | "success" | "error">
   // - 의미: 각 파일의 업로드 상태 관리
+  // - 사용 이유: UI에 상태 표시
   const [uploadStatus, setUploadStatus] = React.useState<
     Record<string, 'uploading' | 'success' | 'error'>
   >({});
   // 상태: 캐러셀 표시 여부
   // - 타입: boolean
   // - 의미: 이미지 수가 5개 초과 시 캐러셀 표시
+  // - 사용 이유: 많은 이미지 관리
   const [showCarousel, setShowCarousel] = React.useState(false);
   // 상태: 업로드 취소 중 여부
   // - 타입: boolean
   // - 의미: 취소 버튼 클릭 시 로딩 UI 표시
+  // - 사용 이유: 사용자 피드백 제공
   const [isCancelling, setIsCancelling] = React.useState(false);
   // 상태: 파일별 색상
   // - 타입: Record<string, string>
   // - 의미: 각 파일에 랜덤 색상 지정
+  // - 사용 이유: 시각적 구분
   const [fileColors, setFileColors] = React.useState<Record<string, string>>(
     {}
   );
 
   // 효과: 캐러셀 표시 여부 결정
   // - 의미: 이미지 수가 5개 초과 시 캐러셀 활성화
+  // - 사용 이유: UI 최적화
   React.useEffect(() => {
     setShowCarousel(previews.length > 5);
   }, [previews.length]);
 
   // 효과: 파일별 업로드 상태 시뮬레이션
   // - 의미: 데모용으로 파일마다 랜덤 상태 부여
+  // - 사용 이유: 테스트용 상태 표시
   React.useEffect(() => {
     if (files.length > 0) {
       const newStatus: Record<string, 'uploading' | 'success' | 'error'> = {};
@@ -93,6 +103,7 @@ function FileUpload({
 
   // 효과: 파일별 랜덤 색상 지정
   // - 의미: 진행 바와 아이콘에 색상 다양성 부여
+  // - 사용 이유: 시각적 구분 향상
   React.useEffect(() => {
     if (files.length > 0) {
       const newColors: Record<string, string> = {};
@@ -110,6 +121,7 @@ function FileUpload({
 
   // 함수: 드래그 오버 핸들러
   // - 의미: 드래그 시 UI 변경
+  // - 사용 이유: 사용자에게 드래그 가능 표시
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -117,6 +129,7 @@ function FileUpload({
 
   // 함수: 드래그 리브 핸들러
   // - 의미: 드래그 종료 시 UI 복원
+  // - 사용 이유: 원래 상태로 복귀
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -124,6 +137,7 @@ function FileUpload({
 
   // 함수: 드롭 핸들러
   // - 의미: 드롭된 파일 처리
+  // - 사용 이유: 파일 업로드 처리
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -133,6 +147,7 @@ function FileUpload({
 
   // 함수: 파일 처리
   // - 의미: 유효한 이미지 파일만 필터링
+  // - 사용 이유: 이미지 파일만 업로드 허용
   const handleFiles = (selectedFiles: File[]) => {
     const validFiles = selectedFiles.filter((file) =>
       file.type.startsWith('image/')
@@ -142,6 +157,7 @@ function FileUpload({
 
   // 함수: 파일 입력 핸들러
   // - 의미: 파일 선택 다이얼로그에서 파일 처리
+  // - 사용 이유: 파일 선택 처리
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       handleFiles(Array.from(e.target.files));
@@ -150,6 +166,7 @@ function FileUpload({
 
   // 함수: 다음 슬라이드 이동
   // - 의미: 캐러셀에서 다음 이미지 그룹 표시
+  // - 사용 이유: 이미지 탐색
   const nextSlide = () => {
     setCurrentSlide((current) =>
       current === Math.ceil(previews.length / 5) - 1 ? 0 : current + 1
@@ -158,6 +175,7 @@ function FileUpload({
 
   // 함수: 이전 슬라이드 이동
   // - 의미: 캐러셀에서 이전 이미지 그룹 표시
+  // - 사용 이유: 이미지 탐색
   const prevSlide = () => {
     setCurrentSlide((current) =>
       current === 0 ? Math.ceil(previews.length / 5) - 1 : current - 1
@@ -166,6 +184,7 @@ function FileUpload({
 
   // 함수: 파일 크기 포맷팅
   // - 의미: 바이트 단위를 읽기 쉬운 단위로 변환
+  // - 사용 이유: 사용자 친화적 표시
   const formatFileSize = (bytes: number = 0): string => {
     if (bytes < 1024) return `${bytes} B`;
     else if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -175,6 +194,7 @@ function FileUpload({
 
   // 함수: 파일 아이콘 선택
   // - 의미: 파일 확장자에 따라 아이콘 반환
+  // - 사용 이유: 시각적 구분
   const getFileIcon = (fileName: string = ''): string => {
     const extension = fileName.split('.').pop()?.toLowerCase() || '';
     switch (extension) {
@@ -203,6 +223,7 @@ function FileUpload({
 
   // 함수: 업로드 취소
   // - 의미: 실패 또는 진행 중인 업로드 제거
+  // - 사용 이유: 사용자 제어 제공
   const handleCancelUpload = () => {
     setIsCancelling(true);
     setTimeout(() => {
@@ -223,8 +244,11 @@ function FileUpload({
   return (
     // 컨테이너: 파일 업로드 UI 전체
     // - 의미: 드롭 존, 업로드 상태, 이미지 미리보기 포함
+    // - 사용 이유: 통합된 업로드 UI 제공
     <div className="w-full space-y-6">
       {/* 드롭 존 */}
+      {/* - 의미: 파일 드래그 앤 드롭 UI */}
+      {/* - 사용 이유: 직관적 파일 업로드 */}
       <Card>
         <CardContent
           ref={dropZoneRef}
@@ -409,8 +433,13 @@ function FileUpload({
               </div>
             )}
           </div>
+          {/* 이미지 미리보기 컨테이너 */}
+          {/* - 수정: grid -> flex */}
+          {/* - 의미: 이미지를 가로로 배치, 줄바꿈 허용 */}
+          {/* - 사용 이유: flex로 반응형 이미지 배치 */}
+          {/* - 비유: 사진 앨범에 사진을 줄지어 붙이는 것 */}
           <div
-            className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 ${
+            className={`flex flex-wrap gap-4 ${
               showCarousel ? 'overflow-x-auto pb-2' : ''
             }`}
             style={showCarousel ? { scrollBehavior: 'smooth' } : {}}
@@ -419,7 +448,10 @@ function FileUpload({
               ? previews
                   .slice(currentSlide * 5, currentSlide * 5 + 5)
                   .map((preview, index) => (
-                    <div key={`${preview}-${index}`}>
+                    <div
+                      key={`${preview}-${index}`}
+                      className="flex-shrink-0 w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] md:w-[calc(25%-0.75rem)] lg:w-[calc(20%-0.8rem)]"
+                    >
                       <Card className="relative overflow-hidden group">
                         <img
                           src={preview}
@@ -446,7 +478,10 @@ function FileUpload({
                     </div>
                   ))
               : previews.map((preview, index) => (
-                  <div key={`${preview}-${index}`}>
+                  <div
+                    key={`${preview}-${index}`}
+                    className="flex-shrink-0 w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] md:w-[calc(25%-0.75rem)] lg:w-[calc(20%-0.8rem)]"
+                  >
                     <Card className="relative overflow-hidden group">
                       <img
                         src={preview}
@@ -476,4 +511,4 @@ function FileUpload({
 }
 
 export default FileUpload;
-//====수정됨====
+//====여기까지 수정됨====
