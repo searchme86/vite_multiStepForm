@@ -188,63 +188,61 @@ function BasicInfoSection() {
         {/* - 의미: 카테고리와 설정을 가로로 배치 */}
         {/* - 사용 이유: flex로 반응형 가로 레이아웃 구현 */}
         {/* - 비유: 책 표지에 나란히 붙은 라벨과 스위치 */}
-        <div className="flex flex-col gap-6 sm:flex-row">
-          {/* 카테고리 필드 */}
-          {/* - 의미: 카테고리 선택 UI */}
-          {/* - 사용 이유: 포스트 분류 선택 */}
-          <FormItem className="flex-1">
-            <FormLabel>카테고리</FormLabel>
-            <Select
-              onValueChange={handleCategoryChange}
-              value={categoryValue}
-              aria-label="카테고리 선택"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="카테고리를 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.category && (
-              <FormMessage>{errors.category.message}</FormMessage>
+        {/* 카테고리 필드 */}
+        {/* - 의미: 카테고리 선택 UI */}
+        {/* - 사용 이유: 포스트 분류 선택 */}
+        <FormItem className="flex-1">
+          <FormLabel>카테고리</FormLabel>
+          <Select
+            onValueChange={handleCategoryChange}
+            value={categoryValue}
+            aria-label="카테고리 선택"
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="카테고리를 선택하세요" />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.category && (
+            <FormMessage>{errors.category.message}</FormMessage>
+          )}
+        </FormItem>
+        {/* 설정 필드 */}
+        {/* - 의미: 초안 및 공개 설정 UI */}
+        {/* - 사용 이유: 게시 옵션 관리 */}
+        <div className="ml-auto space-y-4">
+          <FormItem>
+            <div className="flex items-center justify-between">
+              <FormLabel>초안으로 저장</FormLabel>
+              <Switch
+                checked={isDraftValue}
+                onCheckedChange={handleDraftToggle}
+                aria-label="초안으로 저장"
+              />
+            </div>
+            {errors.isDraft && (
+              <FormMessage>{errors.isDraft.message}</FormMessage>
             )}
           </FormItem>
-          {/* 설정 필드 */}
-          {/* - 의미: 초안 및 공개 설정 UI */}
-          {/* - 사용 이유: 게시 옵션 관리 */}
-          <div className="flex-1 space-y-4">
-            <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel>초안으로 저장</FormLabel>
-                <Switch
-                  checked={isDraftValue}
-                  onCheckedChange={handleDraftToggle}
-                  aria-label="초안으로 저장"
-                />
-              </div>
-              {errors.isDraft && (
-                <FormMessage>{errors.isDraft.message}</FormMessage>
-              )}
-            </FormItem>
-            <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel>공개 포스트</FormLabel>
-                <Switch
-                  checked={isPublicValue}
-                  onCheckedChange={handlePublicToggle}
-                  aria-label="공개 여부"
-                />
-              </div>
-              {errors.isPublic && (
-                <FormMessage>{errors.isPublic.message}</FormMessage>
-              )}
-            </FormItem>
-          </div>
+          <FormItem>
+            <div className="flex items-center justify-between">
+              <FormLabel>공개 포스트</FormLabel>
+              <Switch
+                checked={isPublicValue}
+                onCheckedChange={handlePublicToggle}
+                aria-label="공개 여부"
+              />
+            </div>
+            {errors.isPublic && (
+              <FormMessage>{errors.isPublic.message}</FormMessage>
+            )}
+          </FormItem>
         </div>
       </div>
     </div>
