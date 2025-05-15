@@ -1,14 +1,15 @@
 //====여기부터 수정됨====
 // MarkdownPreview.tsx: 마크다운 미리보기, 클릭+드래그, 검색어 강조
 // - 의미: HTML 렌더링, 텍스트 선택, 에러 메시지
-// - 사용 이유: 실시간 미리보기, 에디터로 위치 이동
+// - 사용 이유: 실시간 미리보기 제공, 에디터로 위치 이동
 // - 비유: 책에서 문장 색칠 후 노트로 이동
 // - 작동 메커니즘:
 //   1. onMouseDown, onMouseUp으로 클릭+드래그 처리
 //   2. window.getSelection으로 텍스트/블록 추출
-//   3. 선택된 텍스트로 에디터 이동
-//   4. 검색어 강조 및 다중 결과 탐색 버튼
-//   5. 예외 메시지 표시
+//   3. 다중 블록 선택 감지 및 에러 처리
+//   4. 선택된 텍스트로 에디터 이동
+//   5. 검색어 강조 및 다중 결과 탐색 버튼
+//   6. 예외 메시지 표시
 // - 관련 키워드: window.getSelection, dompurify, react-quill
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -21,7 +22,8 @@ import './styles.css';
 
 // 타입: 에러 메시지
 // - 의미: 사용자에게 표시할 에러 정보
-// - 사용 이유: 텍스트 선택 실패 시 피드백 제공
+// - 값: 'empty', 'multi-block', 'mapping-failed' 중 하나와 메시지 문자열
+// - 왜: 사용자에게 구체적인 에러 피드백 제공
 type ErrorMessage = {
   type: 'empty' | 'multi-block' | 'mapping-failed';
   text: string;
@@ -29,7 +31,8 @@ type ErrorMessage = {
 
 // 타입: 컴포넌트 속성
 // - 의미: 부모 컴포넌트로부터 받는 콜백 함수
-// - 사용 이유: 선택된 텍스트와 블록을 에디터로 전달
+// - 값: 선택된 텍스트와 블록, 오프셋, 길이, 에러 설정 함수
+// - 왜: 타입 안전성과 명확한 데이터 전달 보장
 interface MarkdownPreviewProps {
   setSelectedBlockText: (blockText: string | null) => void;
   setSelectedOffset: (offset: number | null) => void;
@@ -42,6 +45,11 @@ interface MarkdownPreviewProps {
 // - 의미: 입력된 검색어를 HTML에서 찾아 노란색으로 표시
 // - 사용 이유: 사용자 검색어 가시화
 // - 비유: 책에서 단어 찾아 마커로 칠하기
+// - 작동 매커니즘:
+//   1. 검색어 유효성 검사
+//   2. HTML 파sing 및 텍스트 노드 탐색
+//   3. 검색어 매칭 및 하이라이트 적용
+//   4. 보안 정화 후 반환
 const highlightSearchTerm = (html: string, searchTerm: string): string => {
   // 검색어가 없으면 원본 HTML 반환
   // - 의미: 검색어가 없으면 강조할 필요 없음
@@ -111,6 +119,13 @@ const highlightSearchTerm = (html: string, searchTerm: string): string => {
 // 함수: 미리보기 컴포넌트
 // - 의미: 마크다운 실시간 렌더링 및 검색 기능 제공
 // - 사용 이유: 사용자 작성 콘텐츠 미리보기
+// - 작동 매커니즘:
+//   1. 폼 컨텍스트 확인 및 상태 감시
+//   2. 마크다운 및 검색어 상태 가져오기
+//   3. 검색어 하이라이트 HTML 생성
+//   4. 텍스트 선택 이벤트 처리
+//   5. 검색 매치 탐색 UI 제공
+//   6. 에러 처리 및 사용자 피드백
 function MarkdownPreview({
   setSelectedBlockText,
   setSelectedOffset,
@@ -132,7 +147,7 @@ function MarkdownPreview({
     return (
       <div
         className="flex flex-col items-center justify-center p-4 text-red-500"
-        role="alert"
+        role="region"
         aria-live="assertive"
       >
         <h2 className="text-lg font-medium">폼 컨텍스트 오류</h2>
@@ -310,13 +325,31 @@ function MarkdownPreview({
 
       const range = selection?.getRangeAt(0);
       let startBlock: Element | null = null;
+      let endBlock: Element | null = null;
 
-      let node: Node | null = range?.startContainer;
-      while (node && !startBlock) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          startBlock = (node as Element).closest('p,h1,h2,h3,li,ul,ol');
+      let startNode: Node | null = range?.startContainer;
+      while (startNode && !startBlock) {
+        if (startNode.nodeType === Node.ELEMENT_NODE) {
+          startBlock = (startNode as Element).closest('p,h1,h2,h3,li,ul,ol');
         }
-        node = node.parentNode;
+        startNode = startNode.parentNode;
+      }
+
+      let endNode: Node | null = range?.endContainer;
+      while (endNode && !endBlock) {
+        if (endNode.nodeType === Node.ELEMENT_NODE) {
+          endBlock = (endNode as Element).closest('p,h1,h2,h3,li,ul,ol');
+        }
+        endNode = endNode.parentNode;
+      }
+
+      if (startBlock && endBlock && startBlock !== endBlock) {
+        setErrorMessage({
+          type: 'multi-block',
+          text: '여러 블록에 걸친 선택은 지원되지 않습니다. 단일 블록을 선택해주세요.',
+        });
+        selection?.removeAllRanges();
+        return;
       }
 
       if (startBlock) {
