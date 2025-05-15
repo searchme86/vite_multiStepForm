@@ -1,4 +1,14 @@
 //====여기부터 수정됨====
+// MarkdownEditor.tsx: Quill 기반 마크다운 에디터
+// - 의미: 마크다운 입력, 텍스트 기반 커서 이동
+// - 사용 이유: 포스트 작성, 미리보기 선택 반영
+// - 비유: 노트에 글 쓰고, 책 페이지로 펜 이동
+// - 작동 메커니즘:
+//   1. ReactQuill로 마크다운 입력
+//   2. 미리보기에서 선택된 텍스트의 시작 지점으로 커서 이동
+//   3. 에러 메시지 표시
+// - 관련 키워드: react-quill, react-hook-form, tailwindcss
+
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import ReactQuill from 'react-quill';
@@ -53,13 +63,13 @@ const formats = ['header', 'bold', 'italic', 'list', 'bullet', 'image'];
 // 함수: 마크다운 에디터
 // - 의미: 마크다운 입력 및 커서 이동 처리 컴포넌트
 // - 사용 이유: 사용자 입력과 미리보기 선택 반영
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+function MarkdownEditor({
   selectedBlockText,
   selectedOffset,
   selectedLength,
   selectedText,
   setErrorMessage,
-}) => {
+}: MarkdownEditorProps) {
   // 컴포넌트 렌더링 로그, 개발 환경에서만 출력
   // - 의미: 렌더링 추적
   // - 왜: 프로덕션 환경에서 불필요한 로그 제거
@@ -87,6 +97,22 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const quillRef = useRef<ReactQuill>(null);
   const markdown = watch('markdown') || '';
   const isUserTyping = useRef(false);
+
+  // 디바운스된 setValue
+  // - 의미: 입력 지연 업데이트
+  // - 사용 이유: 렌더링 최소화, 성능 개선
+  const debouncedSetValue = useCallback(
+    debounce((value: string) => {
+      setValue('markdown', value, { shouldValidate: true });
+      // 디버깅 로그, 개발 환경에서만 출력
+      // - 의미: 폼 필드 값 확인
+      // - 왜: 입력값 추적
+      if (process.env.NODE_ENV === 'development') {
+        console.log('MarkdownEditor: Debounced form field value', value);
+      }
+    }, 300),
+    [setValue]
+  );
 
   // 효과: 커서 이동
   // - 의미: 미리보기 선택 반영
@@ -116,6 +142,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const blockText = selectedBlockText.replace(/[\n\r]+/g, ' ').trim();
     const searchText = selectedText.trim();
 
+    // 블록 텍스트의 모든 시작 인덱스 찾기
+    // - 의미: 중복 블록 처리
+    // - 사용 이유: 정확한 위치 매핑
     const indices = [];
     let index = fullText.indexOf(blockText);
     while (index !== -1) {
@@ -129,19 +158,22 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         position + selectedLength <= fullText.length &&
         fullText.substring(position, position + selectedLength) === searchText
       ) {
-        quill.setSelection(position, selectedLength);
+        // 커서를 선택된 텍스트의 시작 지점에 위치
+        // - 의미: 텍스트 선택 대신 커서만 이동
+        // - 왜: 사용자가 즉시 편집 시작 가능하도록
+        quill.setSelection(position, 0);
         quill.focus();
         // 디버깅 로그, 개발 환경에서만 출력
         // - 의미: 커서 이동 확인
         // - 왜: 디버깅 용이성
         if (process.env.NODE_ENV === 'development') {
           console.log(
-            'MarkdownEditor: Moved to text',
+            'MarkdownEditor: Moved cursor to position',
+            position,
+            'for text',
             blockText,
             'selected:',
-            searchText,
-            'index:',
-            position
+            searchText
           );
         }
         return;
@@ -232,19 +264,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }, 100);
   };
 
-  const debouncedSetValue = useCallback(
-    debounce((value: string) => {
-      setValue('markdown', value, { shouldValidate: true });
-      // 디버깅 로그, 개발 환경에서만 출력
-      // - 의미: 폼 필드 값 확인
-      // - 왜: 입력값 추적
-      if (process.env.NODE_ENV === 'development') {
-        console.log('MarkdownEditor: Debounced form field value', value);
-      }
-    }, 300),
-    [setValue]
-  );
-
   return (
     <div
       className="flex flex-col flex-1 gap-2"
@@ -267,7 +286,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default MarkdownEditor;
 //====여기까지 수정됨====
