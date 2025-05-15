@@ -58,8 +58,17 @@ const modules = {
 // Quill 포맷
 // - 의미: 지원하는 포맷 목록
 // - 사용 이유: 에디터에서 허용할 스타일 정의
-// - 값: 헤더, 볼드, 이탤릭, 리스트, 이미지
-const formats = ['header', 'bold', 'italic', 'list', 'bullet', 'image'];
+// - 값: 헤더, 볼드, 이탤릭, 리스트, 이미지, 배경색
+// - 왜: 'background' 추가로 텍스트 하이라이트 가능
+const formats = [
+  'header',
+  'bold',
+  'italic',
+  'list',
+  'bullet',
+  'image',
+  'background',
+];
 
 // 함수: 마크다운 에디터
 // - 의미: 마크다운 입력 및 커서 이동, 하이라이트 처리 컴포넌트
@@ -96,7 +105,7 @@ function MarkdownEditor({
   const { watch, setValue } = formContext;
 
   const quillRef = useRef<ReactQuill>(null);
-  const markdown = watch('markdown') || '';
+  const markdown = watch('markdown') || ''; // 마크다운 상태 감시, 기본값 빈 문자열
   const isUserTyping = useRef(false);
   const highlightedRangeRef = useRef<{ index: number; length: number } | null>(
     null
@@ -178,6 +187,11 @@ function MarkdownEditor({
         // - 의미: 선택된 텍스트에 노란색 배경 적용
         // - 왜: 사용자에게 선택 영역 시각적 피드백 제공
         quill.formatText(position, selectedLength, 'background', 'yellow');
+        // 적용된 포맷 확인
+        // - 의미: 포맷 적용 여부 디버깅
+        // - 왜: 하이라이트 문제 추적
+        const appliedFormats = quill.getFormat(position, selectedLength);
+        console.log('Applied formats:', appliedFormats);
         // 하이라이트 범위 업데이트
         // - 의미: 현재 하이라이트 범위 저장
         // - 왜: 다음 제거 시 사용
