@@ -1,15 +1,3 @@
-//====여기부터 수정됨====
-// MarkdownEditor.tsx: Quill 기반 마크다운 에디터
-// - 의미: 마크다운 입력, 텍스트 기반 커서 이동 및 하이라이트
-// - 사용 이유: 포스트 작성, 미리보기 선택 반영, 시각적 하이라이트 제공
-// - 비유: 노트에 글 쓰고, 책 페이지에서 선택한 부분을 노란색으로 칠하고 펜을 그 위치에 놓음
-// - 작동 메커니즘:
-//   1. ReactQuill로 마크다운 입력
-//   2. 미리보기에서 선택된 텍스트의 시작 지점으로 커서 이동
-//   3. 선택된 텍스트에 노란색 배경 적용
-//   4. 에러 메시지 표시
-// - 관련 키워드: react-quill, react-hook-form, tailwindcss
-
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import ReactQuill from 'react-quill';
@@ -45,16 +33,16 @@ interface MarkdownEditorProps {
 // - 왜: 사용자 친화적 편집 환경 제공
 const modules = {
   toolbar: [
-    [{ header: [2, 3, false] }],
-    ['bold', 'italic'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['image'],
-    ['clean'],
+    [{ header: [2, 3, false] }], // 헤더 옵션 제공
+    ['bold', 'italic'], // 볼드, 이탤릭 스타일링
+    [{ list: 'ordered' }, { list: 'bullet' }], // 순서/비순서 리스트
+    ['image'], // 이미지 삽입
+    ['clean'], // 포맷 제거
   ],
   history: {
-    delay: 2000,
-    maxStack: 500,
-    userOnly: true,
+    delay: 2000, // 변경 지연 시간
+    maxStack: 500, // 최대 실행 취소 스택
+    userOnly: true, // 사용자 변경만 기록
   },
 };
 
@@ -64,13 +52,13 @@ const modules = {
 // - 값: 헤더, 볼드, 이탤릭, 리스트, 이미지, 배경색
 // - 왜: 배경색 포맷 추가로 하이라이트 기능 활성화
 const formats = [
-  'header',
-  'bold',
-  'italic',
-  'list',
-  'bullet',
-  'image',
-  'background',
+  'header', // 헤더 스타일
+  'bold', // 볼드 스타일
+  'italic', // 이탤릭 스타일
+  'list', // 리스트 스타일
+  'bullet', // 비순서 리스트
+  'image', // 이미지 삽입
+  'background', // 배경색 하이라이트
 ];
 
 // 함수: 마크다운 에디터
@@ -93,9 +81,13 @@ function MarkdownEditor({
   // - 의미: 렌더링 추적
   // - 왜: 프로덕션 환경에서 불필요한 로그 제거
   if (process.env.NODE_ENV === 'development') {
-    console.log('MarkdownEditor: Rendering');
+    console.log('MarkdownEditor: Rendering'); // 렌더링 시작 로그 출력
+    // - 의미: 컴포넌트 렌더링 확인
+    // - 왜: 디버깅 용이성
   }
-  const formContext = useFormContext<BlogPostFormData>();
+  const formContext = useFormContext<BlogPostFormData>(); // 폼 컨텍스트 가져오기
+  // - 의미: react-hook-form으로 폼 상태 접근
+  // - 왜: 마크다운 데이터 동기화
   // 폼 컨텍스트 없으면 에러 UI 표시
   // - 의미: 폼 데이터 접근 실패 시 사용자 피드백
   // - 왜: 사용자 경험 개선
@@ -103,17 +95,27 @@ function MarkdownEditor({
     return (
       <div
         className="flex flex-col items-center justify-center p-4 text-red-500"
-        role="region"
+        role="alert"
         aria-live="assertive"
       >
         <h2 className="text-lg font-medium">폼 컨텍스트 오류</h2>
+        {/* - 의미: 에러 메시지 제목 표시 */}
+        {/* - 왜: 사용자에게 오류 상황 명확히 전달 */}
         <p className="text-sm">에디터를 로드할 수 없습니다.</p>
+        {/* - 의미: 에러 상세 메시지 표시 */}
+        {/* - 왜: 오류 원인 설명 */}
       </div>
-    );
+    ); // 폼 컨텍스트 오류 시 에러 메시지 렌더링
+    // - 의미: 사용자에게 오류 알림
+    // - 왜: 오류 상황 처리
   }
-  const { watch, setValue } = formContext;
+  const { watch, setValue } = formContext; // 폼 상태 관리 함수와 데이터 추출
+  // - 의미: watch로 상태 감시, setValue로 상태 업데이트
+  // - 왜: 폼 데이터 동기화
 
-  const quillRef = useRef<ReactQuill>(null);
+  const quillRef = useRef<ReactQuill>(null); // Quill 에디터 참조
+  // - 의미: ReactQuill 인스턴스 참조 저장
+  // - 왜: Quill API 호출용
   const markdown = watch('markdown') || ''; // 마크다운 상태 감시, 기본값 빈 문자열
   // - 의미: 현재 마크다운 콘텐츠 가져오기
   // - 왜: 에디터 콘텐츠 동기화
@@ -122,8 +124,8 @@ function MarkdownEditor({
   // - 왜: 입력 중 하이라이트 간섭 방지
   const highlightedRangeRef = useRef<{ index: number; length: number } | null>(
     null
-  );
-  // - 의미: 현재 하이라이트된 범위 저장
+  ); // 현재 하이라이트된 범위 저장
+  // - 의미: 하이라이트 범위 저장
   // - 왜: 이전 하이라이트 제거 시 사용
 
   // 디바운스된 setValue
@@ -132,15 +134,21 @@ function MarkdownEditor({
   // - 왜: 빈번한 상태 업데이트로 인한 성능 저하 방지
   const debouncedSetValue = useCallback(
     debounce((value: string) => {
-      setValue('markdown', value, { shouldValidate: true });
+      setValue('markdown', value, { shouldValidate: true }); // 폼 상태 업데이트
+      // - 의미: 마크다운 값 폼에 반영
+      // - 왜: 성능 최적화
       // 디버깅 로그, 개발 환경에서만 출력
       // - 의미: 폼 필드 값 확인
       // - 왜: 입력값 추적
       if (process.env.NODE_ENV === 'development') {
-        console.log('MarkdownEditor: Debounced form field value', value);
+        console.log('MarkdownEditor: Debounced form field value', value); // 디바운스된 값 로그
+        // - 의미: 입력값 확인
+        // - 왜: 디버깅 용이성
       }
     }, 300),
-    [setValue]
+    [setValue] // setValue 의존성
+    // - 의미: setValue 변경 시 함수 재생성
+    // - 왜: 최신 setValue 사용 보장
   );
 
   // 효과: 커서 이동 및 하이라이트
@@ -240,21 +248,29 @@ function MarkdownEditor({
           // - 왜: 새로운 하이라이트와 충돌 방지
         }
         // 새 하이라이트 적용
-        // - 의미: 선택된 텍스트에 노란색 배경 적용
-        // - 왜: 사용자에게 선택 영역 시각적 피드백 제공
-        quill.formatText(position, selectedLength, 'background', 'yellow');
+        // - 의미: 선택된 텍스트에 파란색 배경 적용
+        // - 왜: 사용자에게 선택 영역 시각적 피드백 제공, 가독성 향상
+        quill.formatText(position, selectedLength, 'background', '#ADD8E6'); // 변경: 노란색에서 파란색 계열로
+        // - 의미: 선택된 텍스트에 연한 파란색 배경 적용
+        // - 왜: 가독성 개선 및 시각적 피로 감소
         // 포맷 적용 확인
         // - 의미: 하이라이트 적용 여부 디버깅
         // - 왜: 포맷 문제 추적
-        const appliedFormats = quill.getFormat(position, selectedLength);
-        console.log('Applied formats:', appliedFormats);
+        const appliedFormats = quill.getFormat(position, selectedLength); // 적용된 포맷 확인
+        // - 의미: 포맷 적용 상태 확인
+        // - 왜: 디버깅 및 포맷 적용 보장
+        console.log('Applied formats:', appliedFormats); // 포맷 로그 출력
+        // - 의미: 적용된 포맷 디버깅
+        // - 왜: 문제 추적 용이성
         // 하이라이트 범위 업데이트
         // - 의미: 현재 하이라이트 범위 저장
         // - 왜: 다음 제거 시 사용
         highlightedRangeRef.current = {
           index: position,
           length: selectedLength,
-        };
+        }; // 하이라이트 범위 저장
+        // - 의미: 현재 하이라이트 범위 업데이트
+        // - 왜: 다음 하이라이트 제거 시 참조
         // 커서를 시작 지점에 위치, 포커스
         // - 의미: 사용자가 즉시 편집 시작 가능
         // - 왜: 사용자 경험 개선
@@ -279,7 +295,9 @@ function MarkdownEditor({
             position + selectedLength,
             'and moved cursor to',
             position
-          );
+          ); // 하이라이트 및 커서 이동 로그
+          // - 의미: 하이라이트 및 커서 이동 확인
+          // - 왜: 디버깅 용이성
         }
         return; // 매핑 성공 시 종료
         // - 의미: 추가 탐색 방지
@@ -293,7 +311,9 @@ function MarkdownEditor({
     setErrorMessage({
       type: 'mapping-failed',
       text: '선택한 텍스트를 찾을 수 없습니다.',
-    });
+    }); // 매핑 실패 에러 설정
+    // - 의미: 사용자에게 매핑 실패 알림
+    // - 왜: 사용자 경험 개선
     // 디버깅 로그, 개발 환경에서만 출력
     // - 의미: 매핑 실패 디버깅
     // - 왜: 문제 추적
@@ -302,7 +322,9 @@ function MarkdownEditor({
         fullText,
         blockText,
         searchText: selectedText,
-      });
+      }); // 매핑 실패 로그
+      // - 의미: 매핑 실패 상세 정보 출력
+      // - 왜: 디버깅 용이성
     }
   }, [
     selectedBlockText,
@@ -310,7 +332,9 @@ function MarkdownEditor({
     selectedLength,
     selectedText,
     setErrorMessage,
-  ]);
+  ]); // 의존성 배열
+  // - 의미: 선택 정보 및 에러 설정 함수 변경 시 효과 재실행
+  // - 왜: 최신 데이터 반영
 
   // 핸들러: 텍스트 변경
   // - 의미: 사용자 입력 처리
@@ -332,7 +356,9 @@ function MarkdownEditor({
       // - 의미: 비사용자 변경 무시
       // - 왜: 성능 최적화
       if (process.env.NODE_ENV === 'development') {
-        console.log('MarkdownEditor: Non-user change, source:', source);
+        console.log('MarkdownEditor: Non-user change, source:', source); // 비사용자 변경 로그
+        // - 의미: 변경 소스 확인
+        // - 왜: 디버깅 용이성
       }
       return;
     }
@@ -344,7 +370,9 @@ function MarkdownEditor({
     // - 의미: 입력 시작 로그
     // - 왜: 입력 추적
     if (process.env.NODE_ENV === 'development') {
-      console.log('MarkdownEditor: Text changed, source:', source);
+      console.log('MarkdownEditor: Text changed, source:', source); // 텍스트 변경 로그
+      // - 의미: 입력 이벤트 확인
+      // - 왜: 디버깅 용이성
     }
 
     // 커서 위치 저장
@@ -359,10 +387,12 @@ function MarkdownEditor({
         // - 의미: 커서 위치 로그
         // - 왜: 디버깅 용이성
         if (process.env.NODE_ENV === 'development') {
-          console.log('MarkdownEditor: Cursor position', selection);
+          console.log('MarkdownEditor: Cursor position', selection); // 커서 위치 로그
+          // - 의미: 커서 위치 확인
+          // - 왜: 디버깅 용이성
         }
       } catch (e) {
-        console.warn('MarkdownEditor: Failed to get selection', e); // 에러 로그
+        console.warn('MarkdownEditor: Failed to get selection', e); // 커서 가져오기 실패 로그
         // - 의미: 커서 가져오기 실패 기록
         // - 왜: 디버깅 및 안정성
       }
@@ -381,7 +411,7 @@ function MarkdownEditor({
         // - 의미: 입력 전 커서 위치로 복귀
         // - 왜: 사용자 경험 유지
       } catch (e) {
-        console.warn('MarkdownEditor: Failed to restore selection', e); // 에러 로그
+        console.warn('MarkdownEditor: Failed to restore selection', e); // 커서 복원 실패 로그
         // - 의미: 커서 복원 실패 기록
         // - 왜: 디버깅 및 안정성
       }
@@ -403,8 +433,10 @@ function MarkdownEditor({
       role="region"
       aria-label="마크다운 에디터"
     >
-      {/* 미리보기 라벨 */}
+      {/* 콘텐츠 라벨 */}
       <label className="text-sm font-medium">콘텐츠</label>
+      {/* - 의미: 에디터 입력 필드의 라벨 */}
+      {/* - 왜: 사용자에게 입력 필드 목적 전달 */}
       <div className="">
         <ReactQuill
           ref={quillRef}
@@ -417,9 +449,13 @@ function MarkdownEditor({
           className="bg-white border rounded-md"
           aria-label="마크다운 입력"
         />
+        {/* - 의미: Quill 에디터 렌더링 */}
+        {/* - 왜: 마크다운 입력 및 편집 인터페이스 제공 */}
       </div>
     </div>
-  );
+  ); // 에디터 컨테이너 반환
+  // - 의미: 마크다운 에디터 UI 렌더링
+  // - 왜: 사용자 입력 및 선택 동기화 인터페이스 제공
 }
 
 export default MarkdownEditor;
