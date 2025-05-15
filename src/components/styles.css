@@ -1,10 +1,20 @@
-/* styles.css: 검색어 강조를 위한 CSS */
+/* styles.css: MarkdownPreview의 검색어 강조 스타일 */
+/* - 의미: 검색어 강조를 위한 CSS 정의 */
+/* - 사용 이유: Tailwind 클래스 충돌 방지, 노란색 강조 복원 */
+/* - 비유: 책에서 검색된 단어를 노란색 마커로 칠하기 */
+
 .search-highlight {
-  background-color: #fef08a; /* 기본 노란색 강조 */
+  background-color: #fefcbf !important; /* 노란색 강조, prose 충돌 방지 */
+  padding: 2px 4px;
+  border-radius: 2px;
 }
+
+/* Tailwind의 prose 스타일 덮어씌우기 */
+.prose .search-highlight {
+  background-color: #fefcbf !important;
+}
+
+/* 현재 선택된 검색어 (파란색) */
 .search-highlight.bg-blue-200 {
-  background-color: #bfdbfe; /* 현재 매칭 파란색 */
-}
-.search-highlight.bg-yellow-200 {
-  background-color: #fef08a; /* 나머지 노란색 */
+  background-color: #bfdbfe !important;
 }
