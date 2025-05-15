@@ -1,12 +1,13 @@
 //====여기부터 수정됨====
 // MarkdownEditor.tsx: Quill 기반 마크다운 에디터
-// - 의미: 마크다운 입력, 텍스트 기반 커서 이동
-// - 사용 이유: 포스트 작성, 미리보기 선택 반영
-// - 비유: 노트에 글 쓰고, 책 페이지로 펜 이동
+// - 의미: 마크다운 입력, 텍스트 기반 커서 이동 및 하이라이트
+// - 사용 이유: 포스트 작성, 미리보기 선택 반영, 시각적 하이라이트 제공
+// - 비유: 노트에 글 쓰고, 책 페이지에서 선택한 부분을 노란색으로 칠하고 펜을 그 위치에 놓음
 // - 작동 메커니즘:
 //   1. ReactQuill로 마크다운 입력
 //   2. 미리보기에서 선택된 텍스트의 시작 지점으로 커서 이동
-//   3. 에러 메시지 표시
+//   3. 선택된 텍스트에 노란색 배경 적용
+//   4. 에러 메시지 표시
 // - 관련 키워드: react-quill, react-hook-form, tailwindcss
 
 import React, { useEffect, useRef, useCallback } from 'react';
@@ -61,8 +62,8 @@ const modules = {
 const formats = ['header', 'bold', 'italic', 'list', 'bullet', 'image'];
 
 // 함수: 마크다운 에디터
-// - 의미: 마크다운 입력 및 커서 이동 처리 컴포넌트
-// - 사용 이유: 사용자 입력과 미리보기 선택 반영
+// - 의미: 마크다운 입력 및 커서 이동, 하이라이트 처리 컴포넌트
+// - 사용 이유: 사용자 입력과 미리보기 선택 반영, 시각적 피드백 제공
 function MarkdownEditor({
   selectedBlockText,
   selectedOffset,
@@ -97,6 +98,9 @@ function MarkdownEditor({
   const quillRef = useRef<ReactQuill>(null);
   const markdown = watch('markdown') || '';
   const isUserTyping = useRef(false);
+  const highlightedRangeRef = useRef<{ index: number; length: number } | null>(
+    null
+  );
 
   // 디바운스된 setValue
   // - 의미: 입력 지연 업데이트
@@ -114,37 +118,38 @@ function MarkdownEditor({
     [setValue]
   );
 
-  // 효과: 커서 이동
-  // - 의미: 미리보기 선택 반영
-  // - 사용 이유: 사용자 인터랙션
+  // 효과: 커서 이동 및 하이라이트
+  // - 의미: 미리보기 선택 반영, 선택된 텍스트 하이라이트
+  // - 사용 이유: 사용자 인터랙션, 시각적 피드백 제공
   useEffect(() => {
-    if (isUserTyping.current) {
-      // 사용자 입력 중이면 커서 이동 스킵
-      // - 의미: 입력 중 간섭 방지
-      // - 왜: 사용자 경험 개선
-      if (process.env.NODE_ENV === 'development') {
-        console.log('MarkdownEditor: User typing, skipping moveToText');
+    if (!quillRef.current) return;
+    const quill = quillRef.current.getEditor();
+
+    if (
+      selectedBlockText == null ||
+      selectedOffset == null ||
+      selectedLength == null ||
+      selectedText == null
+    ) {
+      // 기존 하이라이트 제거
+      // - 의미: 선택 해제 시 하이라이트 제거
+      // - 왜: 사용자 경험 개선, 불필요한 하이라이트 방지
+      if (highlightedRangeRef.current) {
+        quill.formatText(
+          highlightedRangeRef.current.index,
+          highlightedRangeRef.current.length,
+          'background',
+          false
+        );
+        highlightedRangeRef.current = null;
       }
       return;
     }
-
-    if (
-      !quillRef.current ||
-      !selectedBlockText ||
-      selectedOffset == null ||
-      selectedLength == null ||
-      !selectedText
-    )
-      return;
-    const quill = quillRef.current.getEditor();
 
     const fullText = quill.getText();
     const blockText = selectedBlockText.replace(/[\n\r]+/g, ' ').trim();
     const searchText = selectedText.trim();
 
-    // 블록 텍스트의 모든 시작 인덱스 찾기
-    // - 의미: 중복 블록 처리
-    // - 사용 이유: 정확한 위치 매핑
     const indices = [];
     let index = fullText.indexOf(blockText);
     while (index !== -1) {
@@ -158,22 +163,44 @@ function MarkdownEditor({
         position + selectedLength <= fullText.length &&
         fullText.substring(position, position + selectedLength) === searchText
       ) {
-        // 커서를 선택된 텍스트의 시작 지점에 위치
-        // - 의미: 텍스트 선택 대신 커서만 이동
-        // - 왜: 사용자가 즉시 편집 시작 가능하도록
+        // 기존 하이라이트 제거
+        // - 의미: 이전 하이라이트 제거
+        // - 왜: 중복 방지
+        if (highlightedRangeRef.current) {
+          quill.formatText(
+            highlightedRangeRef.current.index,
+            highlightedRangeRef.current.length,
+            'background',
+            false
+          );
+        }
+        // 새 하이라이트 적용
+        // - 의미: 선택된 텍스트에 노란색 배경 적용
+        // - 왜: 사용자에게 선택 영역 시각적 피드백 제공
+        quill.formatText(position, selectedLength, 'background', 'yellow');
+        // 하이라이트 범위 업데이트
+        // - 의미: 현재 하이라이트 범위 저장
+        // - 왜: 다음 제거 시 사용
+        highlightedRangeRef.current = {
+          index: position,
+          length: selectedLength,
+        };
+        // 커서를 시작 지점에 위치, 포커스
+        // - 의미: 사용자가 즉시 편집 시작 가능
+        // - 왜: 사용자 경험 개선
         quill.setSelection(position, 0);
         quill.focus();
         // 디버깅 로그, 개발 환경에서만 출력
-        // - 의미: 커서 이동 확인
+        // - 의미: 하이라이트 및 커서 이동 확인
         // - 왜: 디버깅 용이성
         if (process.env.NODE_ENV === 'development') {
           console.log(
-            'MarkdownEditor: Moved cursor to position',
+            'MarkdownEditor: Highlighted from',
             position,
-            'for text',
-            blockText,
-            'selected:',
-            searchText
+            'to',
+            position + selectedLength,
+            'and moved cursor to',
+            position
           );
         }
         return;
