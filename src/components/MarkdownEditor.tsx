@@ -80,7 +80,6 @@ function MarkdownEditor() {
               value={field.value || ''}
               onChange={(value) => field.onChange(value)}
               placeholder="마크다운으로 컨텐츠를 입력하세요 (예: # 제목, **굵은 텍스트**)"
-              className="min-h-[300px] h-[300px]"
               aria-invalid={!!error}
               aria-label="마크다운 입력"
               modules={{

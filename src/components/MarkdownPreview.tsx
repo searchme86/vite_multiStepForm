@@ -288,7 +288,7 @@ function MarkdownPreview() {
       {/* - 사용 이유: 실시간 콘텐츠 확인 */}
       <div
         ref={previewRef}
-        className="border rounded-md p-4 bg-gray-50 min-h-[300px] overflow-auto prose prose-sm max-w-none"
+        className="p-4 overflow-auto prose-sm prose border rounded-md bg-gray-50 max-w-none"
         dangerouslySetInnerHTML={{ __html: highlightedHTML || '' }}
       />
     </div>

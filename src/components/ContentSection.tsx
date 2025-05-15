@@ -151,7 +151,7 @@ function ContentSection() {
           {/* 마크다운 입력 및 미리보기 */}
           {/* - 의미: 마크다운 콘텐츠 입력 및 미리보기 */}
           {/* - 사용 이유: 포스트 본문 작성 및 검토 */}
-          <div className="flex flex-col gap-6 md:flex-row">
+          <div className="flex flex-col gap-6 min-h-[400px] md:flex-row">
             <MarkdownEditor />
             <MarkdownPreview />
           </div>
