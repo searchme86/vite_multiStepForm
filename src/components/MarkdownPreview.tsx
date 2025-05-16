@@ -152,8 +152,6 @@ function MarkdownPreview({
           : 'background-color: #FFFF99;'
       );
     });
-    // const current = matches[currentMatchIndex];
-    // current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     if (process.env.NODE_ENV === 'development') {
       console.log(
         'MarkdownPreview: Highlighted and scrolled to match',
