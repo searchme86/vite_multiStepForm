@@ -35,7 +35,7 @@ const highlightSearchTerm = (html: string, searchTerm: string): string => {
       const span = doc.createElement('span');
       span.innerHTML = text.replace(
         regex,
-        '<mark class="search-highlight bg-yellow-200">$1</mark>'
+        '<mark style="background-color: #FFFF99;">$1</mark>'
       );
       textNode.parentNode?.replaceChild(span, textNode);
     }
@@ -57,8 +57,11 @@ const highlightSearchTerm = (html: string, searchTerm: string): string => {
       'div',
       'span',
     ],
-    ALLOWED_ATTR: ['class', 'src'],
+    ALLOWED_ATTR: ['style'],
   });
+  if (process.env.NODE_ENV === 'development') {
+    console.log('MarkdownPreview: Highlighted HTML', sanitized);
+  }
   return sanitized;
 };
 
@@ -71,6 +74,9 @@ function MarkdownPreview({
   isMobile = false,
   onClose,
 }: MarkdownPreviewProps) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('MarkdownPreview: Rendering');
+  }
   const formContext = useFormContext<BlogPostFormData>();
   if (!formContext || !formContext.control) {
     return (
@@ -88,6 +94,9 @@ function MarkdownPreview({
 
   const markdown = watch('markdown') || '';
   const searchTerm = watch('searchTerm') || '';
+  if (process.env.NODE_ENV === 'development') {
+    console.log('MarkdownPreview: Watched markdown', markdown);
+  }
 
   const [matches, setMatches] = useState<Element[]>([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
@@ -112,18 +121,23 @@ function MarkdownPreview({
         'div',
         'span',
       ],
-      ALLOWED_ATTR: ['class', 'src'],
+      ALLOWED_ATTR: ['style'],
     });
     return highlightSearchTerm(sanitized, searchTerm);
   }, [markdown, searchTerm]);
 
   useEffect(() => {
     if (!previewRef.current) return;
-    const elements = Array.from(
-      previewRef.current!.querySelectorAll('.search-highlight')
-    );
+    const elements = Array.from(previewRef.current.querySelectorAll('mark'));
     setMatches(elements);
     setCurrentMatchIndex(elements.length > 0 ? 0 : -1);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        'MarkdownPreview: Search matches',
+        elements.length,
+        elements.map((el) => el.outerHTML)
+      );
+    }
   }, [highlightedHTML]);
 
   useEffect(() => {
@@ -131,9 +145,21 @@ function MarkdownPreview({
     const current = matches[currentMatchIndex];
     current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     matches.forEach((el, i) => {
-      el.classList.toggle('!bg-blue-200', i === currentMatchIndex);
-      el.classList.toggle('!bg-yellow-200', i !== currentMatchIndex);
+      el.setAttribute(
+        'style',
+        i === currentMatchIndex
+          ? 'background-color: #ADD8E6;'
+          : 'background-color: #FFFF99;'
+      );
     });
+    // const current = matches[currentMatchIndex];
+    // current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        'MarkdownPreview: Highlighted and scrolled to match',
+        currentMatchIndex + 1
+      );
+    }
   }, [matches, currentMatchIndex]);
 
   const getOffsetInBlock = (
@@ -164,6 +190,9 @@ function MarkdownPreview({
         e.target instanceof HTMLElement &&
         (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON')
       ) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('MarkdownPreview: Ignored mouse down on input/button');
+        }
         return;
       }
       isSelecting.current = true;
