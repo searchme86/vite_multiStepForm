@@ -100,6 +100,9 @@ function MarkdownPreview({
 
   const [matches, setMatches] = useState<Element[]>([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
+  const [selectedMobileText, setSelectedMobileText] = useState<string | null>(
+    null
+  );
   const previewRef = useRef<HTMLDivElement>(null);
   const isSelecting = useRef(false);
 
@@ -309,6 +312,68 @@ function MarkdownPreview({
     ]
   );
 
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      const touch = e.touches[0];
+      console.log('Touch Start:', {
+        x: touch.clientX,
+        y: touch.clientY,
+        target: (e.target as HTMLElement).tagName,
+      });
+    },
+    []
+  );
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    console.log('Touch Move:', {
+      x: touch.clientX,
+      y: touch.clientY,
+      target: (e.target as HTMLElement).tagName,
+    });
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    console.log('Touch End Detected');
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (selection && previewRef.current?.contains(selection.anchorNode)) {
+        const text = selection.toString().trim();
+        console.log('Selected Text on Mobile:', text);
+        if (text) {
+          setSelectedMobileText(text);
+          console.log('Drag Action Successful: Text selected -', text);
+        } else {
+          setSelectedMobileText(null);
+          console.log('Drag Action Failed: No text selected');
+        }
+      } else {
+        setSelectedMobileText(null);
+        console.log('Drag Action Failed: Selection outside preview');
+      }
+    }, 100);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      document.addEventListener('touchend', handleTouchEnd as any);
+      return () => {
+        document.removeEventListener('touchend', handleTouchEnd as any);
+      };
+    }
+  }, [isMobile, handleTouchEnd]);
+
+  const handleInsertText = () => {
+    if (selectedMobileText) {
+      const currentMarkdown = markdown;
+      setSelectedText(selectedMobileText);
+      console.log('Inserting text into editor:', selectedMobileText);
+      if (onClose) {
+        onClose();
+      }
+    }
+  };
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (matches.length <= 1) return;
@@ -378,12 +443,21 @@ function MarkdownPreview({
       <div
         ref={previewRef}
         className="border rounded-md p-4 bg-gray-50 min-h-[300px] overflow-auto prose prose-sm max-w-none"
-        onMouseDown={handleStart}
-        onMouseUp={handleEnd}
-        onTouchStart={handleStart}
-        onTouchEnd={handleEnd}
+        style={{ userSelect: 'text' }}
+        onMouseDown={!isMobile ? handleStart : undefined}
+        onMouseUp={!isMobile ? handleEnd : undefined}
+        onTouchStart={isMobile ? handleTouchStart : undefined}
+        onTouchMove={isMobile ? handleTouchMove : undefined}
+        onTouchEnd={isMobile ? handleTouchEnd : undefined}
         dangerouslySetInnerHTML={{ __html: highlightedHTML || '' }}
       />
+      {isMobile && selectedMobileText && (
+        <div className="mt-2">
+          <Button type="button" onClick={handleInsertText}>
+            에디터에 삽입
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
