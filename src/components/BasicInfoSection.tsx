@@ -26,6 +26,7 @@ import { FormItem, FormMessage } from './ui/form';
 // import type { BlogPostFormData } from '../types/blog-post';
 import type { BlogPostFormData } from '../pages/write/schema/blogPostSchema';
 import PostGuidelines from './PostGuidelines';
+import BlogTitle from '../pages/write/basicFormSection/parts/BlogTitle';
 
 // 상수: 카테고리 옵션
 // - 의미: 카테고리 선택지 정의
@@ -65,20 +66,9 @@ function BasicInfoSection() {
   // - 의미: 폼 입력값 추적
   // - 사용 이유: 실시간 입력값 반영
   // - Fallback: 값이 없으면 빈 문자열 또는 기본값
-  const titleValue = watch('title') || '';
   const summaryValue = watch('summary') || '';
   const contentValue = watch('content') || '';
   const categoryValue = watch('category') || '';
-
-  // 핸들러: 제목 변경
-  // - 의미: 제목 입력 처리
-  // - 사용 이유: 사용자 입력을 폼 상태에 반영
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // setValue 호출
-    // - 의미: 제목 필드 업데이트
-    // - 사용 이유: 입력값 저장 및 유효성 검사
-    setValue('title', e.target.value, { shouldValidate: true });
-  };
 
   // 핸들러: 요약 변경
   // - 의미: 요약 입력 처리
@@ -128,20 +118,7 @@ function BasicInfoSection() {
         {/* - 의미: 입력 필드를 세로로 정렬 */}
         {/* - 사용 이유: flex로 간단한 세로 레이아웃 구현 */}
         <div className="flex flex-col gap-6">
-          {/* 제목 필드 */}
-          {/* - 의미: 제목 입력 UI */}
-          {/* - 사용 이유: 포스트 제목 입력 */}
-          <FormItem>
-            <label className="text-sm font-medium">제목</label>
-            <Input
-              placeholder="블로그 포스트 제목을 입력하세요"
-              value={titleValue}
-              onChange={handleTitleChange}
-              aria-invalid={!!errors.title}
-              aria-label="블로그 포스트 제목"
-            />
-            {errors.title && <FormMessage>{errors.title.message}</FormMessage>}
-          </FormItem>
+          <BlogTitle />
           {/* 요약 필드 */}
           {/* - 의미: 요약 입력 UI */}
           {/* - 사용 이유: 포스트 요약 입력, 최소 10자 */}
