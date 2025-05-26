@@ -2,13 +2,13 @@
 // 코드의 의미: 목차 편집 컨테이너 컴포넌트
 // 왜 사용했는지: 최상위 목차 입력 UI와 목록 렌더링 관리
 // 실행 매커니즘: 인풋으로 최상위 항목 추가, TocListRenderer로 계층적 목록 렌더링
-import { useFormContextWrapper } from '../../components/multiStepForm/hooks/useFormContextWrapper';
+import { useFormContextWrapper } from '../../../../../components/multiStepForm/hooks/useFormContextWrapper';
 import type { FormSchemaType } from '@/schema/FormSchema';
 import TocListRenderer from './parts/TocListRenderer';
 import { useTocEditorManager } from './hooks/useTocEditorManager';
-import { Input } from '../../components/ui/input';
-import { Button } from '../../components/ui/button';
-import useTocListStateStore from '../../stores/tocList/tocListStateStore';
+import { Input } from '../../../../../components/ui/input';
+import { Button } from '../../../../../components/ui/button';
+import useTocListStateStore from '../../../../../stores/tocList/tocListStateStore';
 
 // 코드의 의미: 목차 편집 컨테이너 컴포넌트
 // 왜 사용했는지: 사용자 입력 UI 제공, 최상위 항목 추가 및 목록 표시

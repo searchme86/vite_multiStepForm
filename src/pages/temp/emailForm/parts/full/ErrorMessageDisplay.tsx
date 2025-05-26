@@ -1,4 +1,4 @@
-import { useFormContextWrapper } from '../../../../components/multiStepForm/hooks/useFormContextWrapper';
+import { useFormContextWrapper } from '../../../../../components/multiStepForm/hooks/useFormContextWrapper';
 import type { FormSchemaType } from '@/schema/FormSchema';
 
 // 코드의 의미: 에러 메시지 표시 서브 컴포넌트

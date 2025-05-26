@@ -1,5 +1,5 @@
-import EmailForm from '../../pages/emailForm/EmailForm';
-import TocEditorContainer from '../../pages/tocEditor/TocEditorContainer';
+import EmailForm from '../../pages/temp/emailForm/EmailForm.tsx';
+import TocEditorContainer from '../../pages/write/basicFormSection/parts/tocEditor/TocEditorContainer';
 // import TocEditorContainer from '@/pages/tocEditor/TocEditorContainer';
 import type {
   StepFormState,

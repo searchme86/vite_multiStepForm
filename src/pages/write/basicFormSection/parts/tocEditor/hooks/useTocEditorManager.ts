@@ -3,12 +3,12 @@
 // 왜 사용했는지: 목차 항목 추가, 삭제, 편집, 이동, 인덴트 로직 캡슐화
 // 실행 매커니즘: Zustand와 react-hook-form 상태 관리, 배열 조작
 import { useFieldArray } from 'react-hook-form';
-import { useFormContextWrapper } from '../../../components/multiStepForm/hooks/useFormContextWrapper';
-import type { FormSchemaType } from '../../../schema/FormSchema';
+import { useFormContextWrapper } from '../../../../../../components/multiStepForm/hooks/useFormContextWrapper';
+import type { FormSchemaType } from '../../../../../../schema/FormSchema';
 // import type { FormSchemaType } from '@/schema/FormSchema';
 import { useState, useEffect } from 'react';
 import type { TocItemSchemaType } from '../schema/TocSchema';
-import useTocListStateStore from '../../../stores/tocList/tocListStateStore';
+import useTocListStateStore from '../../../../../../stores/tocList/tocListStateStore';
 import {
   indentItemInArray,
   outdentItemInArray,

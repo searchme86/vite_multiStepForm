@@ -1,13 +1,13 @@
-import { useFormContextWrapper } from '../../../../components/multiStepForm/hooks/useFormContextWrapper';
-import type { FormSchemaType } from '../../../../schema/FormSchema';
-import { Input } from '../../../../components/ui/input';
+import { useFormContextWrapper } from '../../../../../components/multiStepForm/hooks/useFormContextWrapper.ts';
+import type { FormSchemaType } from '../../../../../schema/FormSchema.ts';
+import { Input } from '../../../../../components/ui/input.tsx';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../../components/ui/select.tsx';
+} from '../../../../../components/ui/select.tsx';
 
 function EmailSplitInputFields({
   handleDomainChange,

@@ -1,4 +1,4 @@
-import { useFormContextWrapper } from '../../components/multiStepForm/hooks/useFormContextWrapper';
+import { useFormContextWrapper } from '../../../components/multiStepForm/hooks/useFormContextWrapper';
 import type { FormSchemaType } from '@/schema/FormSchema';
 import FullEmailInputComponent from './parts/full/FullEmailInputComponent';
 import SplitEmailInputComponent from './parts/split/SplitEmailInputComponent';

@@ -5,8 +5,8 @@
 import type { TocItemSchemaType } from '../schema/TocSchema';
 import TocActionButtonsRenderer from './TocActionButtonsRenderer';
 import { useTocEditorManager } from '../hooks/useTocEditorManager';
-import { Input } from '../../../components/ui/input';
-import { Button } from '../../../components/ui/button';
+import { Input } from '../../../../../../components/ui/input';
+import { Button } from '../../../../../../components/ui/button';
 import { useState } from 'react';
 import TocListRenderer from './TocListRenderer';
 

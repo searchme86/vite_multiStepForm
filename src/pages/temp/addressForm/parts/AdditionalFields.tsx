@@ -1,4 +1,4 @@
-import { useAddressForm } from '../hooks/useAddressForm';
+import { useAddressForm } from '../hooks/useAddressForm.ts';
 import { useFormContextWrapper } from '@/components/reactHookForm/useFormContextWrapper';
 import type { FormSchemaType } from '@/schema/FormSchema';
 import { Input } from '@/components/ui/input'; // shadcn/ui 제공
@@ -8,8 +8,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../components/ui/select.tsx'; // shadcn/ui 제공
-import { Country } from '../utils/countries/countries';
+} from '../../../../components/ui/select.tsx'; // shadcn/ui 제공
+import { Country } from '../utils/countries/countries.ts';
 
 // 코드의 의미: 추가 필드 (도시, 우편번호, 시간대 등) 서브 컴포넌트
 // 왜 사용했는지: 추가 필드 UI를 독립적으로 관리
