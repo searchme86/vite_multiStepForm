@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { BlogPostFormData } from '../types/blog-post';
+import type { BlogPostFormData } from '../types/blog-post';
 import DOMPurify from 'dompurify';
 
 type ErrorMessage = {

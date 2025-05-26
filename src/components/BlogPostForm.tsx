@@ -21,7 +21,8 @@ import ContentSection from './ContentSection';
 import MediaSection from './MediaSection';
 import PreviewSection from './PreviewSection';
 import NotificationProvider from './Notification';
-import { BlogPostFormData, blogPostSchema } from '../types/blog-post';
+import type { BlogPostFormData } from '../types/blog-post';
+import { blogPostSchema } from '../types/blog-post';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
 

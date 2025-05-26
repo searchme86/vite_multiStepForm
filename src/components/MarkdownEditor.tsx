@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { BlogPostFormData } from '../types/blog-post';
+import type { BlogPostFormData } from '../types/blog-post';
 import debounce from 'lodash/debounce';
 import { Button } from './ui/button';
 

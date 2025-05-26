@@ -9,10 +9,9 @@
 //   4. react-hot-toast로 사용자 피드백
 // - 관련 키워드: react-hook-form, shadcn/ui, Button, react-hot-toast
 
-import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Button } from './ui/button';
-import { BlogPostFormData } from '../types/blog-post';
+import type { BlogPostFormData } from '../types/blog-post';
 import toast from 'react-hot-toast';
 
 // 인터페이스: 컴포넌트 props

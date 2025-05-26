@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { Button } from './ui/button';
 import { FormMessage } from './ui/form';
-import { BlogPostFormData } from '../types/blog-post';
+import type { BlogPostFormData } from '../types/blog-post';
 import PostGuidelines from './PostGuidelines';
 import TagAutoComplete from './TagAutoComplete';
 import MarkdownEditor from './MarkdownEditor';

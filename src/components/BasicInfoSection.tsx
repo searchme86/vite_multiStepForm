@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { FormItem, FormMessage } from './ui/form';
-import { BlogPostFormData } from '../types/blog-post';
+import type { BlogPostFormData } from '../types/blog-post';
 import PostGuidelines from './PostGuidelines';
 
 // 상수: 카테고리 옵션

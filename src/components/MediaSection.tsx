@@ -16,7 +16,7 @@ import FileUpload from './FileUpload';
 import FileTableView from './FileTableView';
 import PostGuidelines from './PostGuidelines';
 import { FormMessage } from './ui/form';
-import { BlogPostFormData } from '../types/blog-post';
+import type { BlogPostFormData } from '../types/blog-post';
 
 // 함수: 현재 날짜 포맷팅
 // - 타입: () => string

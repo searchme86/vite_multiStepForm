@@ -10,9 +10,8 @@
 //   4. flex 레이아웃으로 반응형 UI 구성
 // - 관련 키워드: react-hook-form, react-markdown, flexbox, shadcn/ui
 
-import React from 'react';
 import { useFormContext } from 'react-hook-form';
-import { BlogPostFormData } from '../types/blog-post';
+import type { BlogPostFormData } from '../types/blog-post';
 import ReactMarkdown from 'react-markdown';
 import PostGuidelines from './PostGuidelines';
 
