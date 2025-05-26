@@ -25,6 +25,7 @@ import type { BlogPostFormData } from '../types/blog-post';
 import { blogPostSchema } from '../types/blog-post';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
+import StepFormContainer from './multiStepForm/StepFormContainer';
 
 // 함수: 블로그 포스트 폼
 // - 의미: 전체 폼 UI와 저장 로직 관리
@@ -137,6 +138,7 @@ function BlogPostForm() {
             {/* - 의미: 자동저장 및 임시저장 UI */}
             {/* - 사용 이유: 모든 탭의 데이터를 통합 관리 */}
             <div className="mb-6 space-y-4">
+              {/*  */}
               <div className="flex flex-col items-start justify-between p-4 border rounded-lg sm:flex-row sm:items-center">
                 <div className="space-y-0.5 mb-2 sm:mb-0">
                   <h4 className="text-sm font-medium">
@@ -152,6 +154,7 @@ function BlogPostForm() {
                   aria-label="자동저장 설정"
                 />
               </div>
+              {/*  */}
               <div className="flex flex-col items-start justify-between p-4 border rounded-lg sm:flex-row sm:items-center">
                 <div className="space-y-0.5 mb-2 sm:mb-0">
                   <h4 className="text-sm font-medium">임시 저장</h4>
@@ -170,6 +173,11 @@ function BlogPostForm() {
                 </Button>
               </div>
             </div>
+
+            {/*  */}
+            <StepFormContainer />
+
+            {/*  */}
             <FormProvider {...methods}>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <Tabs

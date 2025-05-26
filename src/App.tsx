@@ -1,7 +1,5 @@
-import React from 'react';
 import BlogPostForm from './components/BlogPostForm';
 import ErrorBoundary from './components/ErrorBoundary';
-import StepFormContainer from './components/multiStepForm/StepFormContainer';
 import { Toaster } from './components/ui/sonner';
 
 // 함수: 앱 컴포넌트
@@ -20,8 +18,10 @@ function App() {
     //   </ErrorBoundary>
     // </main>
     <div className="container p-4 mx-auto">
-      <StepFormContainer />
-      <Toaster />
+      <ErrorBoundary>
+        <BlogPostForm />
+        <Toaster />
+      </ErrorBoundary>
     </div>
   );
 }
