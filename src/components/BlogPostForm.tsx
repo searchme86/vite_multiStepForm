@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Icon } from '@iconify/react';
-import BasicInfoSection from './BasicInfoSection';
+import BasicInfoSection from '../pages/write/basicFormSection/BasicInfoSection';
 import ContentSection from './ContentSection';
 import MediaSection from './MediaSection';
 import PreviewSection from './PreviewSection';
