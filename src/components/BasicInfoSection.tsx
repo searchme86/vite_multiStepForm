@@ -27,6 +27,7 @@ import { FormItem, FormMessage } from './ui/form';
 import type { BlogPostFormData } from '../pages/write/schema/blogPostSchema';
 import PostGuidelines from './PostGuidelines';
 import BlogTitle from '../pages/write/basicFormSection/parts/BlogTitle';
+import BlogSummary from '../pages/write/basicFormSection/parts/BlogSummary';
 
 // 상수: 카테고리 옵션
 // - 의미: 카테고리 선택지 정의
@@ -66,19 +67,9 @@ function BasicInfoSection() {
   // - 의미: 폼 입력값 추적
   // - 사용 이유: 실시간 입력값 반영
   // - Fallback: 값이 없으면 빈 문자열 또는 기본값
-  const summaryValue = watch('summary') || '';
+  // const summaryValue = watch('summary') || '';
   const contentValue = watch('content') || '';
   const categoryValue = watch('category') || '';
-
-  // 핸들러: 요약 변경
-  // - 의미: 요약 입력 처리
-  // - 사용 이유: 사용자 입력을 폼 상태에 반영
-  const handleSummaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // setValue 호출
-    // - 의미: 요약 필드 업데이트
-    // - 사용 이유: 입력값 저장 및 유효성 검사
-    setValue('summary', e.target.value, { shouldValidate: true });
-  };
 
   // 핸들러: 내용 변경
   // - 의미: 내용 입력 처리
@@ -119,23 +110,7 @@ function BasicInfoSection() {
         {/* - 사용 이유: flex로 간단한 세로 레이아웃 구현 */}
         <div className="flex flex-col gap-6">
           <BlogTitle />
-          {/* 요약 필드 */}
-          {/* - 의미: 요약 입력 UI */}
-          {/* - 사용 이유: 포스트 요약 입력, 최소 10자 */}
-          <FormItem>
-            <label className="text-sm font-medium">요약</label>
-            <Textarea
-              placeholder="블로그 포스트 요약을 입력하세요 (최소 10자)"
-              className="min-h-[100px] h-[100px] resize-none"
-              value={summaryValue}
-              onChange={handleSummaryChange}
-              aria-invalid={!!errors.summary}
-              aria-label="블로그 포스트 요약"
-            />
-            {errors.summary && (
-              <FormMessage>{errors.summary.message}</FormMessage>
-            )}
-          </FormItem>
+          <BlogSummary />
           {/* 내용 필드 */}
           {/* - 의미: 내용 입력 UI */}
           {/* - 사용 이유: 포스트 본문 입력, optional */}
