@@ -15,30 +15,24 @@ import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
 import { FormItem, FormMessage } from './ui/form';
 // import type { BlogPostFormData } from '../types/blog-post';
 import type { BlogPostFormData } from '../pages/write/schema/blogPostSchema';
 import PostGuidelines from './PostGuidelines';
 import BlogTitle from '../pages/write/basicFormSection/parts/BlogTitle';
 import BlogSummary from '../pages/write/basicFormSection/parts/BlogSummary';
+import BlogCategory from '../pages/write/basicFormSection/parts/BlogCategory';
 
-// 상수: 카테고리 옵션
-// - 의미: 카테고리 선택지 정의
-// - 사용 이유: 드롭다운 메뉴에 표시
-// - Fallback: 빈 배열로 초기화
-const categoryOptions = [
-  { value: 'tech', label: '기술' },
-  { value: 'lifestyle', label: '생활' },
-  { value: 'travel', label: '여행' },
-  { value: 'food', label: '음식' },
-];
+// // 상수: 카테고리 옵션
+// // - 의미: 카테고리 선택지 정의
+// // - 사용 이유: 드롭다운 메뉴에 표시
+// // - Fallback: 빈 배열로 초기화
+// const categoryOptions = [
+//   { value: 'tech', label: '기술' },
+//   { value: 'lifestyle', label: '생활' },
+//   { value: 'travel', label: '여행' },
+//   { value: 'food', label: '음식' },
+// ];
 
 // 함수: 기본 정보 섹션
 // - 의미: 사용자 입력 폼 렌더링
@@ -69,7 +63,7 @@ function BasicInfoSection() {
   // - Fallback: 값이 없으면 빈 문자열 또는 기본값
   // const summaryValue = watch('summary') || '';
   const contentValue = watch('content') || '';
-  const categoryValue = watch('category') || '';
+  // const categoryValue = watch('category') || '';
 
   // 핸들러: 내용 변경
   // - 의미: 내용 입력 처리
@@ -79,16 +73,6 @@ function BasicInfoSection() {
     // - 의미: 내용 필드 업데이트
     // - 사용 이유: 입력값 저장 및 유효성 검사
     setValue('content', e.target.value, { shouldValidate: true });
-  };
-
-  // 핸들러: 카테고리 변경
-  // - 의미: 카테고리 선택 처리
-  // - 사용 이유: 사용자 선택을 폼 상태에 반영
-  const handleCategoryChange = (value: string) => {
-    // setValue 호출
-    // - 의미: 카테고리 필드 업데이트
-    // - 사용 이유: 선택값 저장 및 유효성 검사
-    setValue('category', value, { shouldValidate: true });
   };
 
   return (
@@ -129,30 +113,7 @@ function BasicInfoSection() {
             )}
           </FormItem>
           {/* 카테고리 필드 */}
-          {/* - 의미: 카테고리 선택 UI */}
-          {/* - 사용 이유: 포스트 분류 선택 */}
-          <FormItem className="flex-1">
-            <label className="text-sm font-medium">카테고리</label>
-            <Select
-              onValueChange={handleCategoryChange}
-              value={categoryValue}
-              aria-label="카테고리 선택"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="카테고리를 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.category && (
-              <FormMessage>{errors.category.message}</FormMessage>
-            )}
-          </FormItem>
+          <BlogCategory />
         </div>
       </div>
     </div>
