@@ -26,6 +26,7 @@ import { blogPostSchema } from '../types/blog-post';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
 import StepFormContainer from './multiStepForm/StepFormContainer';
+import DisplayDate from './displayDate';
 
 // 함수: 블로그 포스트 폼
 // - 의미: 전체 폼 UI와 저장 로직 관리
@@ -154,6 +155,7 @@ function BlogPostForm() {
                   aria-label="자동저장 설정"
                 />
               </div>
+
               {/*  */}
               <div className="flex flex-col items-start justify-between p-4 border rounded-lg sm:flex-row sm:items-center">
                 <div className="space-y-0.5 mb-2 sm:mb-0">
@@ -175,6 +177,8 @@ function BlogPostForm() {
             </div>
 
             {/*  */}
+
+            <DisplayDate />
             <StepFormContainer />
 
             {/*  */}

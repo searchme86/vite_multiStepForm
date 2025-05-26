@@ -15,25 +15,6 @@ import type { BlogPostFormData } from '../types/blog-post';
 import ReactMarkdown from 'react-markdown';
 import PostGuidelines from './PostGuidelines';
 
-// 함수: 현재 날짜 포맷팅
-// - 타입: () => string
-// - 의미: 현재 년, 월, 일을 "YYYY-MM-DD" 형식으로 반환
-// - 사용 이유: 폼 우측 상단에 작성 날짜 표시
-// - Fallback: 현재 날짜 사용
-const formatCurrentDate = (): string => {
-  // 날짜 객체 생성
-  // - 의미: 현재 날짜 가져오기
-  // - 사용 이유: 실시간 날짜 표시
-  const today = new Date();
-  // 포맷팅
-  // - 의미: 년, 월, 일을 문자열로 변환
-  // - 사용 이유: 사용자 친화적 표시
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 // 함수: 미리보기 섹션
 // - 의미: 작성된 데이터 렌더링
 // - 사용 이유: 최종 포스트 확인

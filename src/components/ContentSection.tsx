@@ -18,18 +18,6 @@ type ErrorMessage = {
   text: string;
 };
 
-// 함수: 현재 날짜 포맷팅
-// - 의미: 오늘 날짜를 YYYY-MM-DD 형식으로 반환
-// - 사용 이유: 포스트 작성 날짜를 UI에 표시
-// - Fallback: Date 객체는 항상 유효하므로 별도 처리 불필요
-const formatCurrentDate = (): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 // 컴포넌트: 콘텐츠 작성 섹션
 // - 의미: 블로그 포스트 작성 UI를 제공하는 컨테이너 컴포넌트
 // - 사용 이유: 태그 입력, 마크다운 편집, 미리보기 기능을 통합 관리
@@ -164,12 +152,6 @@ function ContentSection() {
       {/* - 사용 이유: 사용자에게 태그 입력 방법 안내 */}
       <PostGuidelines tab="tags" />
       <div className="flex flex-col gap-6">
-        {/* 작성 날짜 표시 */}
-        {/* - 의미: 현재 날짜를 UI에 표시 */}
-        {/* - 사용 이유: 포스트 메타데이터 제공 */}
-        <span className="text-sm text-gray-500" style={{ marginLeft: 'auto' }}>
-          작성 날짜: {formatCurrentDate()}
-        </span>
         <div className="flex flex-col gap-6">
           {/* 태그 입력 컴포넌트 */}
           {/* - 의미: 태그 입력 UI 제공 */}

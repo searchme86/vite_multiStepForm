@@ -37,25 +37,6 @@ const categoryOptions = [
   { value: 'food', label: '음식' },
 ];
 
-// 함수: 현재 날짜 포맷팅
-// - 타입: () => string
-// - 의미: 현재 년, 월, 일을 "YYYY-MM-DD" 형식으로 반환
-// - 사용 이유: 폼 우측 상단에 현재 작성 날짜 표시
-// - Fallback: 현재 날짜 사용
-const formatCurrentDate = (): string => {
-  // 날짜 객체 생성
-  // - 의미: 현재 날짜 가져오기
-  // - 사용 이유: 실시간 날짜 표시
-  const today = new Date();
-  // 포맷팅
-  // - 의미: 년, 월, 일을 문자열로 변환
-  // - 사용 이유: 사용자 친화적 표시
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 // 함수: 기본 정보 섹션
 // - 의미: 사용자 입력 폼 렌더링
 // - 사용 이유: 블로그 포스트의 기본 정보 입력
@@ -142,12 +123,6 @@ function BasicInfoSection() {
       {/* - 의미: 날짜 표시와 폼 필드를 함께 관리 */}
       {/* - 사용 이유: 날짜를 우측 상단에 고정 */}
       <div className="flex flex-col gap-6">
-        {/* 날짜 표시 */}
-        {/* - 의미: 현재 작성 날짜 표시 */}
-        {/* - 사용 이유: 사용자에게 작성 시점 제공 */}
-        <span className="text-sm text-gray-500" style={{ marginLeft: 'auto' }}>
-          작성 날짜: {formatCurrentDate()}
-        </span>
         {/* 폼 필드 컨테이너 */}
         {/* - 의미: 입력 필드를 세로로 정렬 */}
         {/* - 사용 이유: flex로 간단한 세로 레이아웃 구현 */}
