@@ -1,4 +1,4 @@
-import { TocItemSchema } from '../parts/tocEditor/schema/TocSchema';
+import { TocItemSchema } from '../basicFormSection/parts/tocEditor/schema/TocSchema';
 import { z } from 'zod';
 
 export const blogContentPathSchema = z.object({
