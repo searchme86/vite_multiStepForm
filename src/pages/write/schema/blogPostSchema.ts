@@ -9,4 +9,4 @@ export const blogPostSchema = blogBasePathSchema
   .merge(blogCommonPathSchema)
   .merge(blogMediaPathSchema);
 
-export type BlogPostFormData = z.infer<typeof blogPostSchema>;
+export type blogPostSchemaType = z.infer<typeof blogPostSchema>;

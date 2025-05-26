@@ -1,4 +1,3 @@
-import { TocItemSchema } from '../basicFormSection/parts/tocEditor/schema/TocSchema';
 import { z } from 'zod';
 
 export const blogContentPathSchema = z.object({
@@ -14,8 +13,8 @@ export const blogContentPathSchema = z.object({
     .array(z.string())
     .min(1, { message: '최소 1개의 태그를 추가해주세요.' })
     .max(5, { message: '태그는 최대 5개까지 추가할 수 있습니다.' }),
-  // 목차
-  tocItems: z.array(TocItemSchema).optional(),
+  // // 목차
+  // tocItems: z.array(TocItemSchema).optional(),
 });
 
 export type blogContentPathSchemaType = z.infer<typeof blogContentPathSchema>;

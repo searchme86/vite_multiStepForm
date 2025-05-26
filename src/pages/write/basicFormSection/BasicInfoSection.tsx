@@ -22,12 +22,11 @@ function BasicInfoSection() {
     <div className="px-4 space-y-6 sm:px-6 md:px-8">
       <PostGuidelines tab="basic" />
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-6">
-          <BlogTitle />
-          <BlogSummary />
-          <BlogContent />
-          <BlogCategory />
-        </div>
+        <BlogTitle />
+        <BlogSummary />
+        <BlogContent />
+        <BlogCategory />
+        <div className="flex flex-col gap-6"></div>
       </div>
     </div>
   );

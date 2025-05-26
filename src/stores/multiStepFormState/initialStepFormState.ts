@@ -1,6 +1,6 @@
-import EmailForm from '../../pages/temp/emailForm/EmailForm.tsx';
+import EmailForm from '../../pages/write/basicFormSection/parts/personInfo/parts/emailForm/EmailForm';
 import TocEditorContainer from '../../pages/write/basicFormSection/parts/tocEditor/TocEditorContainer';
-// import TocEditorContainer from '@/pages/tocEditor/TocEditorContainer';
+
 import type {
   StepFormState,
   EachStep,
@@ -10,6 +10,7 @@ import type {
 //   EachStep,
 // } from '@/components/multiStepForm/types/multiStepFormType';
 import type { FormSchemaType } from '@/schema/FormSchema';
+import BasicInfoSection from '../../pages/write/basicFormSection/BasicInfoSection';
 
 // 코드의 의미: 중첩 경로 유틸리티 타입
 // 왜 사용했는지: 폼 필드 경로를 타입 안전하게 생성
@@ -32,7 +33,7 @@ export const totalSteps: EachStep[] = [
     stepId: '1',
     stepTitle: '목차 생성',
     stepDescription: '목차를 편집해주세요',
-    stepComponent: TocEditorContainer,
+    stepComponent: TocEditorContainer, // 탭에서 렌더링할 컴포넌트
     fieldsOfStep: ['tocItems'],
   },
   {
@@ -40,6 +41,17 @@ export const totalSteps: EachStep[] = [
     stepTitle: '이메일 입력',
     stepDescription: '이메일을 입력해주세요',
     stepComponent: EmailForm,
+    fieldsOfStep: [
+      'email.fullEmailInput',
+      'email.splitEmailInput.userLocalPart',
+      'email.splitEmailInput.emailRest',
+    ],
+  },
+  {
+    stepId: '3',
+    stepTitle: '기본정보',
+    stepDescription: '블로그에 입력할 기본 정보를 입력해주세요',
+    stepComponent: BasicInfoSection,
     fieldsOfStep: [
       'email.fullEmailInput',
       'email.splitEmailInput.userLocalPart',

@@ -1,4 +1,4 @@
-import { useFormContextWrapper } from '../../../components/multiStepForm/hooks/useFormContextWrapper';
+import { useFormContextWrapper } from '../../../../../../../components/multiStepForm/hooks/useFormContextWrapper';
 import type { FormSchemaType } from '@/schema/FormSchema';
 import FullEmailInputComponent from './parts/full/FullEmailInputComponent';
 import SplitEmailInputComponent from './parts/split/SplitEmailInputComponent';
@@ -29,7 +29,7 @@ function EmailForm() {
         />
       </div>
       {errors.email && (
-        <p className="text-red-500 text-sm">{errors.email.message as string}</p>
+        <p className="text-sm text-red-500">{errors.email.message as string}</p>
       )}
     </div>
   );

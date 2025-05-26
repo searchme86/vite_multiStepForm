@@ -1,4 +1,4 @@
-import { useFormContextWrapper } from '../../../../../components/multiStepForm/hooks/useFormContextWrapper';
+import { useFormContextWrapper } from '../../../../../../../../../components/multiStepForm/hooks/useFormContextWrapper';
 import type { FormSchemaType } from '@/schema/FormSchema';
 
 // 코드의 의미: 에러 메시지 표시 서브 컴포넌트
@@ -15,7 +15,7 @@ function ErrorMessageDisplay() {
     // 왜 사용했는지: 유효성 검사 실패 시 사용자 피드백
     <>
       {errors.email?.fullEmailInput && (
-        <p className="text-red-500 text-sm">
+        <p className="text-sm text-red-500">
           {errors.email.fullEmailInput.message as string}
         </p>
       )}

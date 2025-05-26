@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TocItemSchema } from '../basicFormSection/parts/tocEditor/schema/TocSchema';
 
 export const blogBasePathSchema = z.object({
   // 제목
@@ -14,6 +15,8 @@ export const blogBasePathSchema = z.object({
   // 내용
   content: z.string().optional(),
 
+  // 목차
+  tocItems: z.array(TocItemSchema).optional(),
   // 카테고리
   category: z
     .string()

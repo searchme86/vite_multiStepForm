@@ -1,4 +1,4 @@
-import { useFormContextWrapper } from '../../../../../components/multiStepForm/hooks/useFormContextWrapper';
+import { useFormContextWrapper } from '../../../../../../../../../components/multiStepForm/hooks/useFormContextWrapper';
 import type { FormSchemaType } from '@/schema/FormSchema';
 
 function SplitEmailErrorMessages() {
@@ -9,17 +9,17 @@ function SplitEmailErrorMessages() {
   return (
     <>
       {errors.email?.splitEmailInput?.userLocalPart && (
-        <p className="text-red-500 text-sm">
+        <p className="text-sm text-red-500">
           {errors.email.splitEmailInput.userLocalPart.message as string}
         </p>
       )}
       {errors.email?.splitEmailInput?.emailRest && (
-        <p className="text-red-500 text-sm">
+        <p className="text-sm text-red-500">
           {errors.email.splitEmailInput.emailRest.message as string}
         </p>
       )}
       {errors.email?.splitEmailInput?.message && (
-        <p className="text-red-500 text-sm">
+        <p className="text-sm text-red-500">
           {errors.email.splitEmailInput.message as string}
         </p>
       )}
