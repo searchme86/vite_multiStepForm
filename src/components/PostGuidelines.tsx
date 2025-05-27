@@ -1,31 +1,30 @@
+//====여기부터 수정됨====
 // PostGuidelines.tsx: 포스트 작성 가이드와 자동저장 불러오기 UI
-// - 의미: 탭별 작성 유의사항과 저장된 데이터 불러오기 관리
+// - 의미: 탭별 작성 유의사항과 Zustand 상태 불러오기 관리
 // - 사용 이유: 사용자 지침 제공 및 탭별 데이터 복원
 // - 비유: 블로그 작성 규칙과 저장된 메모를 확인하는 메모지
 // - 작동 메커니즘:
-//   1. 탭별 더미 가이드라인 표시
-//   2. Button으로 자동저장 불러오기 트리거
-//   3. 로컬스토리지에서 탭별 데이터 복원
-//   4. react-hot-toast로 사용자 피드백
-// - 관련 키워드: react-hook-form, shadcn/ui, Button, react-hot-toast
+//   1. 탭별 가이드라인 표시
+//   2. Button으로 Zustand 상태 불러오기 트리거
+//   3. Zustand에서 탭별 데이터 복원
+// - 관련 키워드: react-hook-form, zustand, shadcn/ui, tailwindcss
 
-import { useFormContext } from 'react-hook-form';
 import { Button } from './ui/button';
-import type { BlogPostFormData } from '../types/blog-post';
+import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
 import toast from 'react-hot-toast';
+import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
 // 인터페이스: 컴포넌트 props
-// - 타입: { tab: string }
-// - 의미: 현재 탭 식별자로, 가이드와 저장 데이터 구분
+// - 의미: 탭 식별자와 setValue 메서드 전달
+// - 사용 이유: 탭별 가이드와 데이터 복원 처리
 interface PostGuidelinesProps {
   tab: 'basic' | 'tags' | 'media' | 'preview';
+  setValue: (name: keyof blogPostSchemaType, value: any, options?: any) => void;
 }
 
 // 상수: 탭별 작성 유의사항
-// - 타입: Record<string, string[]>
-// - 의미: 각 탭의 더미 가이드라인 텍스트
-// - 사용 이유: 사용자 지침 제공, 이후 수정 가능
-// - Fallback: 빈 배열
+// - 의미: 각 탭의 가이드라인 텍스트
+// - 사용 이유: 사용자 지침 제공
 const guidelinesByTab: Record<string, string[]> = {
   basic: [
     '제목은 5자 이상 100자 이하로 작성해주세요.',
@@ -48,65 +47,43 @@ const guidelinesByTab: Record<string, string[]> = {
   ],
 };
 
-// 함수: 포스트 가이드 컴포넌트
-// - 의미: 탭별 가이드와 자동저장 불러오기 UI 렌더링
-// - 사용 이유: 사용자 지침 및 데이터 복원 제공
-function PostGuidelines({ tab }: PostGuidelinesProps) {
-  // 폼 컨텍스트
-  // - 의미: 폼 상태 접근
-  // - 사용 이유: 데이터 복원
-  // - Fallback: 컨텍스트 없으면 기본 UI 렌더링
-  const formContext = useFormContext<BlogPostFormData>();
-  const setValue = formContext ? formContext.setValue : () => {};
+// PostGuidelines: 가이드와 Zustand 상태 불러오기
+// - 의미: 탭별 가이드라인 표시 및 자동저장 데이터 복원
+// - 사용 이유: 사용자 지침 제공, Zustand 상태 활용
+function PostGuidelines({ tab, setValue }: PostGuidelinesProps) {
+  // Zustand 상태
+  // - 의미: 저장된 폼 데이터 접근
+  // - 사용 이유: 자동저장 데이터 복원
+  const { state } = useStepFieldsStateStore();
 
   // 핸들러: 자동저장 불러오기
   // - 의미: 탭별 저장된 데이터 로드
   // - 사용 이유: 사용자 요청 시 데이터 복원
-  // - 비유: 저장된 메모를 꺼내 페이지에 붙이기
+  // - 작동 매커니즘: Zustand state에서 탭별 필드 복원
   const handleLoadAutoSave = () => {
-    // 저장된 데이터
-    // - 의미: 로컬스토리지에서 최신 데이터 가져오기
-    // - 사용 이유: 탭별 데이터 복원
-    const keys = Object.keys(localStorage).filter((key) =>
-      key.startsWith(`autosave_all_`)
-    );
-    if (keys.length === 0) {
-      toast.error('저장된 데이터가 없습니다.', { duration: 3000 });
-      return;
-    }
-    // 최신 데이터
-    // - 의미: 가장 최근 저장 데이터
-    // - 사용 이유: 최신 상태 복원
-    const latestKey = keys.sort().reverse()[0];
-    const savedData = localStorage.getItem(latestKey);
-    if (savedData && formContext) {
-      const parsedData = JSON.parse(savedData);
-      // 탭별 필드
-      // - 의미: 탭별로 복원할 필드 정의
-      // - 사용 이유: 탭별 데이터만 복원
-      const fieldsByTab: Record<string, (keyof BlogPostFormData)[]> = {
-        basic: ['title', 'summary', 'content', 'category'],
-        tags: ['tags', 'markdown', 'searchTerm'],
-        media: ['coverImage'],
-        preview: [
-          'title',
-          'summary',
-          'content',
-          'markdown',
-          'searchTerm',
-          'category',
-          'tags',
-          'coverImage',
-        ],
-      };
-      // 필드 복원
-      // - 의미: 폼 상태 업데이트
-      // - 사용 이유: 사용자 입력 복원
-      fieldsByTab[tab].forEach((field) => {
-        if (parsedData[field]) {
-          setValue(field, parsedData[field], { shouldValidate: true });
-        }
-      });
+    const fieldsByTab: Record<string, (keyof blogPostSchemaType)[]> = {
+      basic: ['title', 'summary', 'content', 'category'],
+      tags: ['tags', 'markdown', 'searchTerm'],
+      media: ['coverImage'],
+      preview: [
+        'title',
+        'summary',
+        'content',
+        'markdown',
+        'searchTerm',
+        'category',
+        'tags',
+        'coverImage',
+      ],
+    };
+    let hasData = false;
+    fieldsByTab[tab].forEach((field) => {
+      if (state[field] !== undefined) {
+        setValue(field, state[field], { shouldValidate: true });
+        hasData = true;
+      }
+    });
+    if (hasData) {
       toast.success(`${tab} 탭의 자동저장 데이터가 불러와졌습니다.`, {
         duration: 3000,
       });
@@ -122,7 +99,6 @@ function PostGuidelines({ tab }: PostGuidelinesProps) {
     <div className="p-4 space-y-6 rounded-lg sm:p-6 bg-gray-50">
       {/* 가이드라인 */}
       {/* - 의미: 탭별 작성 유의사항 표시 */}
-      {/* - 사용 이유: 사용자 지침 제공 */}
       <div>
         <h3 className="mb-4 text-lg font-medium">포스트 작성 유의사항</h3>
         <ul className="pl-5 space-y-2 text-gray-600 list-disc">
@@ -133,7 +109,6 @@ function PostGuidelines({ tab }: PostGuidelinesProps) {
       </div>
       {/* 자동저장 불러오기 */}
       {/* - 의미: 저장된 데이터 복원 UI */}
-      {/* - 사용 이유: 탭별 데이터 복원 */}
       <div className="flex flex-col items-start justify-between p-4 border rounded-lg sm:flex-row sm:items-center">
         <div className="space-y-0.5 mb-2 sm:mb-0">
           <h4 className="text-sm font-medium">자동저장 불러오기</h4>
@@ -142,11 +117,10 @@ function PostGuidelines({ tab }: PostGuidelinesProps) {
           </p>
         </div>
         <Button
-          type="button"
+          type="button" // 웹 접근성: 버튼 타입 명시
           variant="outline"
           onClick={handleLoadAutoSave}
           aria-label="자동저장 불러오기"
-          disabled={!formContext}
         >
           자동저장 불러오기
         </Button>
@@ -156,3 +130,4 @@ function PostGuidelines({ tab }: PostGuidelinesProps) {
 }
 
 export default PostGuidelines;
+//====여기까지 수정됨====

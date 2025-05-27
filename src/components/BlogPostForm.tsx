@@ -1,16 +1,17 @@
+//====여기부터 수정됨====
 // BlogPostForm.tsx: 블로그 포스트 작성 폼
 // - 의미: 기본 정보, 본문 작성, 미디어, 미리보기 입력 관리 및 저장
-// - 사용 이유: 통합 폼으로 사용자 입력 처리 및 저장 기능 제공
+// - 사용 이유: 통합 폼으로 사용자 입력 처리 및 Zustand로 상태 지속성 보장
 // - 비유: 블로그 작성 노트북, 각 탭은 페이지, 저장 버튼은 책갈피
 // - 작동 메커니즘:
 //   1. useForm으로 폼 초기화
 //   2. Tabs로 섹션 전환
 //   3. 자동저장 주기적 실행, 임시저장 수동 실행
-//   4. 로컬스토리지로 데이터 저장
-// - 관련 키워드: react-hook-form, shadcn/ui, localStorage, flexbox
+//   4. Zustand로 데이터 저장
+// - 관련 키워드: react-hook-form, shadcn/ui, zustand, tailwindcss, flexbox
 
 import React from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -21,76 +22,79 @@ import ContentSection from './ContentSection';
 import MediaSection from './MediaSection';
 import PreviewSection from './PreviewSection';
 import NotificationProvider from './Notification';
-import type { BlogPostFormData } from '../types/blog-post';
-import { blogPostSchema } from '../types/blog-post';
+import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
+import { blogPostSchema } from '../pages/write/schema/blogPostSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
 import StepFormContainer from './multiStepForm/StepFormContainer';
-import DisplayDate from './displayDate';
+import DisplayDate from './DisplayDate';
+import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
-// 함수: 블로그 포스트 폼
-// - 의미: 전체 폼 UI와 저장 로직 관리
-// - 사용 이유: 사용자 입력과 저장 기능 통합
+// BlogPostForm: 전체 폼 UI와 저장 로직 관리
+// - 의미: 사용자 입력과 Zustand 저장 통합
+// - 사용 이유: React Hook Form으로 폼 관리, Zustand로 상태 지속성
 function BlogPostForm() {
-  // 폼 상태
+  // 폼 상태 초기화
   // - 의미: 폼 데이터 및 유효성 검사 관리
   // - 사용 이유: react-hook-form으로 선언적 폼 관리
-  // - Fallback: 기본값 설정으로 초기화
-  const methods = useForm<BlogPostFormData>({
+  const methods = useForm<blogPostSchemaType>({
     resolver: zodResolver(blogPostSchema),
     defaultValues: {
       title: '',
       summary: '',
-      content: '',
-      markdown: '',
-      searchTerm: '',
+      content: undefined,
+      markdown: undefined,
+      searchTerm: undefined,
       category: '',
       tags: [],
       coverImage: [],
       publishDate: undefined,
       isDraft: false,
       isPublic: true,
+      tocItems: [],
     },
+    mode: 'onChange', // 실시간 유효성 검사
   });
 
-  // 상태: 현재 탭
-  // - 의미: 활성 탭 추적
-  // - 사용 이유: UI 상태 관리
-  // - Fallback: 기본값 'basic'
-  const [currentTab, setCurrentTab] = React.useState('basic');
+  const { watch, handleSubmit, setValue } = methods;
+  const { state, setFormData } = useStepFieldsStateStore();
+
+  // 페이지 로드 시 Zustand 상태를 폼에 초기화
+  // - 의미: Zustand의 상태를 폼에 설정
+  // - 사용 이유: 페이지 리프레시 후 상태 복원
+  // - 작동 매커니즘: state의 각 키-값 쌍을 setValue로 폼에 설정
+  React.useEffect(() => {
+    Object.entries(state).forEach(([key, value]) => {
+      setValue(key as keyof blogPostSchemaType, value, {
+        shouldValidate: true,
+      });
+    });
+  }, [setValue, state]);
 
   // 상태: 자동저장 활성화 여부
   // - 의미: 자동저장 설정 관리
   // - 사용 이유: 주기적 저장 제어
-  // - Fallback: 기본값 false
   const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(false);
 
-  // 폼 데이터 접근
-  // - 의미: 현재 폼 데이터 추적
-  // - 사용 이유: 저장 로직에 사용
-  const { watch, handleSubmit } = methods;
-
   // 효과: 자동저장
-  // - 의미: 활성화 시 10초마다 폼 데이터 저장
+  // - 의미: 활성화 시 10초마다 폼 데이터를 Zustand에 저장
   // - 사용 이유: 데이터 손실 방지
-  // - 비유: 노트를 쓰다가 주기적으로 저장 버튼 누르기
+  // - 작동 매커니즘: watch로 폼 데이터 가져와 setFormData로 Zustand에 저장
   React.useEffect(() => {
     if (isAutoSaveEnabled) {
       const interval = setInterval(() => {
         const formData = watch();
-        localStorage.setItem(
-          `autosave_all_${Date.now()}`,
-          JSON.stringify(formData)
-        );
+        setFormData(formData);
         toast.success('포스트가 자동 저장되었습니다.', { duration: 3000 });
       }, 10000);
       return () => clearInterval(interval);
     }
-  }, [isAutoSaveEnabled, watch]);
+  }, [isAutoSaveEnabled, watch, setFormData]);
 
   // 핸들러: 자동저장 토글
   // - 의미: 자동저장 설정 전환
   // - 사용 이유: 사용자 선택 반영
+  // - 작동 매커니즘: 상태 반전 및 사용자 피드백 제공
   const handleAutoSaveToggle = () => {
     setIsAutoSaveEnabled((prev) => {
       const newState = !prev;
@@ -105,22 +109,22 @@ function BlogPostForm() {
   };
 
   // 핸들러: 임시저장
-  // - 의미: 현재 폼 데이터 수동 저장
+  // - 의미: 현재 폼 데이터를 Zustand에 수동 저장
   // - 사용 이유: 사용자 요청 시 데이터 백업
+  // - 작동 매커니즘: watch로 데이터 가져와 setFormData로 저장
   const handleTempSave = () => {
     const formData = watch();
-    localStorage.setItem(
-      `tempsave_all_${Date.now()}`,
-      JSON.stringify(formData)
-    );
+    setFormData(formData);
     toast.success('포스트가 임시 저장되었습니다.', { duration: 3000 });
   };
 
   // 제출 핸들러
   // - 의미: 폼 데이터 제출
-  // - 사용 이유: 사용자 입력 저장 및 피드백
-  const onSubmit = (data: BlogPostFormData) => {
+  // - 사용 이유: 최종 데이터 게시 및 Zustand 동기화
+  // - 작동 매커니즘: 데이터 콘솔 출력 후 setFormData로 저장
+  const onSubmit = (data: blogPostSchemaType) => {
     console.log('Form submitted:', data);
+    setFormData(data);
     toast.success('포스트가 성공적으로 제출되었습니다.', { duration: 3000 });
   };
 
@@ -137,9 +141,8 @@ function BlogPostForm() {
           <CardContent>
             {/* 저장 설정 */}
             {/* - 의미: 자동저장 및 임시저장 UI */}
-            {/* - 사용 이유: 모든 탭의 데이터를 통합 관리 */}
+            {/* - 사용 이유: 모든 탭의 데이터 통합 관리 */}
             <div className="mb-6 space-y-4">
-              {/*  */}
               <div className="flex flex-col items-start justify-between p-4 border rounded-lg sm:flex-row sm:items-center">
                 <div className="space-y-0.5 mb-2 sm:mb-0">
                   <h4 className="text-sm font-medium">
@@ -155,8 +158,6 @@ function BlogPostForm() {
                   aria-label="자동저장 설정"
                 />
               </div>
-
-              {/*  */}
               <div className="flex flex-col items-start justify-between p-4 border rounded-lg sm:flex-row sm:items-center">
                 <div className="space-y-0.5 mb-2 sm:mb-0">
                   <h4 className="text-sm font-medium">임시 저장</h4>
@@ -175,26 +176,18 @@ function BlogPostForm() {
                 </Button>
               </div>
             </div>
-
-            {/*  */}
-
             <DisplayDate />
             <StepFormContainer />
-
-            {/*  */}
-            <FormProvider {...methods}>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <Tabs
-                  defaultValue="basic"
-                  className="w-full"
-                  onValueChange={setCurrentTab}
-                >
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <FormProvider {...methods}>
+                <Tabs defaultValue="basic" className="w-full">
                   <TabsList className="flex w-full h-auto gap-6 p-1 mb-6 bg-gray-100 rounded-lg">
                     {['basic', 'content', 'media', 'preview'].map((tab) => (
                       <TabsTrigger
                         key={tab}
                         value={tab}
                         className="w-full text-sm font-medium rounded-md sm:text-base data-[state=active]:text-blue-600 data-[state=active]:font-semibold"
+                        aria-label={`${tab} 탭`} // 웹 접근성: 탭 설명
                       >
                         {tab === 'basic' && '기본 정보'}
                         {tab === 'content' && '본문 작성'}
@@ -214,9 +207,6 @@ function BlogPostForm() {
                   </TabsContent>
                   <TabsContent value="preview" className="mt-0">
                     <PreviewSection />
-                    {/* 게시 버튼 */}
-                    {/* - 의미: 폼 제출 트리거 */}
-                    {/* - 사용 이유: 최종 데이터 게시 */}
                     <div className="flex justify-end mt-6">
                       <Button
                         type="submit"
@@ -230,8 +220,8 @@ function BlogPostForm() {
                     </div>
                   </TabsContent>
                 </Tabs>
-              </form>
-            </FormProvider>
+              </FormProvider>
+            </form>
           </CardContent>
         </Card>
       </div>
@@ -240,3 +230,4 @@ function BlogPostForm() {
 }
 
 export default BlogPostForm;
+//====여기까지 수정됨====

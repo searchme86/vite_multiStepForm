@@ -1,15 +1,33 @@
+//====여기부터 수정됨====
+// MarkdownPreview.tsx: 블로그 포스트 마크다운 미리보기 섹션
+// - 의미: 마크다운 콘텐츠 미리보기 및 검색어 하이라이트 제공
+// - 사용 이유: 작성 콘텐츠 검토, Zustand로 상태 지속성 보장
+// - 비유: 작성된 원고를 인쇄하여 검토하는 과정
+// - 작동 메커니즘:
+//   1. watch로 마크다운과 검색어 데이터 접근
+//   2. control로 검색어 입력 관리
+//   3. setValue로 폼 업데이트, setSearchTerm으로 Zustand 동기화
+//   4. ReactMarkdown으로 마크다운 렌더링, 검색어 하이라이트
+// - 관련 키워드: react-hook-form, zustand, react-markdown, tailwindcss, flexbox
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import type { BlogPostFormData } from '../types/blog-post';
+import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
 import DOMPurify from 'dompurify';
 
+// 타입: 오류 메시지
+// - 의미: 오류 유형과 메시지 정의
+// - 사용 이유: 사용자 피드백 제공
 type ErrorMessage = {
   type: 'empty' | 'multi-block' | 'mapping-failed';
   text: string;
 };
 
+// 인터페이스: 컴포넌트 props
+// - 의미: 미리보기 설정 및 콜백 전달
+// - 사용 이유: 마크다운 미리보기와 편집기 연동
 interface MarkdownPreviewProps {
   setSelectedBlockText: (blockText: string | null) => void;
   setSelectedOffset: (offset: number | null) => void;
@@ -18,8 +36,15 @@ interface MarkdownPreviewProps {
   setErrorMessage: (message: ErrorMessage | null) => void;
   isMobile?: boolean;
   onClose?: () => void;
+  setValue: (name: keyof blogPostSchemaType, value: any, options?: any) => void;
+  setSearchTerm: (value: string) => void;
+  control: any;
+  watch: any;
 }
 
+// 함수: 검색어 하이라이트
+// - 의미: 마크다운 HTML에서 검색어 강조
+// - 사용 이루: 사용자 검색어 시각화
 const highlightSearchTerm = (html: string, searchTerm: string): string => {
   if (!searchTerm.trim()) return html;
   const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -65,6 +90,9 @@ const highlightSearchTerm = (html: string, searchTerm: string): string => {
   return sanitized;
 };
 
+// MarkdownPreview: 마크다운 미리보기 UI
+// - 의미: 마크다운 콘텐츠와 검색어 하이라이트 표시
+// - 사용 이유: 콘텐츠 검토, Zustand 동기화
 function MarkdownPreview({
   setSelectedBlockText,
   setSelectedOffset,
@@ -73,39 +101,49 @@ function MarkdownPreview({
   setErrorMessage,
   isMobile = false,
   onClose,
+  setValue,
+  setSearchTerm,
+  control,
+  watch,
 }: MarkdownPreviewProps) {
+  // 개발 환경 로그
+  // - 의미: 렌더링 확인
+  // - 사용 이유: 디버깅
   if (process.env.NODE_ENV === 'development') {
     console.log('MarkdownPreview: Rendering');
   }
-  const formContext = useFormContext<BlogPostFormData>();
-  if (!formContext || !formContext.control) {
-    return (
-      <div
-        className="flex flex-col items-center justify-center p-4 text-red-500"
-        role="region"
-        aria-live="assertive"
-      >
-        <h2 className="text-lg font-medium">폼 컨텍스트 오류</h2>
-        <p className="text-sm">미리보기를 로드할 수 없습니다.</p>
-      </div>
-    );
-  }
-  const { control, watch } = formContext;
 
+  // 폼 데이터
+  // - 의미: 마크다운과 검색어 값 추적
+  // - 사용 이유: 미리보기 렌더링
   const markdown = watch('markdown') || '';
   const searchTerm = watch('searchTerm') || '';
+
   if (process.env.NODE_ENV === 'development') {
     console.log('MarkdownPreview: Watched markdown', markdown);
   }
 
+  // 상태: 검색어 매칭
+  // - 의미: 하이라이트된 검색어 목록
   const [matches, setMatches] = useState<Element[]>([]);
+  // 상태: 현재 매칭 인덱스
+  // - 의미: 활성 검색어 위치
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
+  // 상태: 모바일 선택 텍스트
+  // - 의미: 모바일 터치로 선택된 텍스트
   const [selectedMobileText, setSelectedMobileText] = useState<string | null>(
     null
   );
+  // 참조: 미리보기 요소
+  // - 의미: DOM 조작
   const previewRef = useRef<HTMLDivElement>(null);
+  // 상태: 선택 중 여부
+  // - 의미: 텍스트 선택 추적
   const isSelecting = useRef(false);
 
+  // 메모이제이션: 하이라이트된 HTML
+  // - 의미: 마크다운과 검색어로 HTML 생성
+  // - 사용 이유: 성능 최적화
   const highlightedHTML = React.useMemo(() => {
     const sanitized = DOMPurify.sanitize(markdown, {
       ALLOWED_TAGS: [
@@ -129,6 +167,9 @@ function MarkdownPreview({
     return highlightSearchTerm(sanitized, searchTerm);
   }, [markdown, searchTerm]);
 
+  // 효과: 검색어 매칭
+  // - 의미: 검색어에 해당하는 요소 찾기
+  // - 사용 이유: 하이라이트 및 네비게이션
   useEffect(() => {
     if (!previewRef.current) return;
     const elements = Array.from(previewRef.current.querySelectorAll('mark'));
@@ -143,6 +184,9 @@ function MarkdownPreview({
     }
   }, [highlightedHTML]);
 
+  // 효과: 매칭 하이라이트 및 스크롤
+  // - 의미: 현재 매칭된 검색어 강조 및 표시
+  // - 사용 이유: 사용자 피드백
   useEffect(() => {
     if (!matches.length || currentMatchIndex === -1) return;
     const current = matches[currentMatchIndex];
@@ -163,6 +207,9 @@ function MarkdownPreview({
     }
   }, [matches, currentMatchIndex]);
 
+  // 함수: 블록 내 오프셋 계산
+  // - 의미: 선택된 텍스트의 위치 계산
+  // - 사용 이유: 편집기와 미리보기 연동
   const getOffsetInBlock = (
     block: Element,
     container: Node,
@@ -183,13 +230,16 @@ function MarkdownPreview({
     return -1;
   };
 
+  // 핸들러: 선택 시작
+  // - 의미: 텍스트 선택 시작 처리
+  // - 사용 이유: 사용자 선택 추적
   const handleStart = useCallback(
     (
-      e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
+      _e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
     ) => {
       if (
-        e.target instanceof HTMLElement &&
-        (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON')
+        _e.target instanceof HTMLElement &&
+        (_e.target.tagName === 'INPUT' || _e.target.tagName === 'BUTTON')
       ) {
         if (process.env.NODE_ENV === 'development') {
           console.log('MarkdownPreview: Ignored mouse down on input/button');
@@ -202,9 +252,12 @@ function MarkdownPreview({
     [setErrorMessage]
   );
 
+  // 핸들러: 선택 종료
+  // - 의미: 텍스트 선택 완료 처리
+  // - 사용 이유: 선택된 텍스트 정보 저장
   const handleEnd = useCallback(
     (
-      e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
+      _e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
     ) => {
       if (!isSelecting.current) return;
       isSelecting.current = false;
@@ -217,10 +270,24 @@ function MarkdownPreview({
       }
 
       const range = selection?.getRangeAt(0);
+      if (!range) {
+        // range가 undefined인 경우 처리
+        // - 의미: 선택 범위를 가져올 수 없는 경우
+        // - 사용 이유: 타입 안전성 보장
+        setErrorMessage({
+          type: 'mapping-failed',
+          text: '선택 범위를 가져올 수 없습니다.',
+        });
+        return;
+      }
+
       let startBlock: Element | null = null;
       let endBlock: Element | null = null;
 
-      let startNode: Node | null = range?.startContainer;
+      // 안전한 타입 처리: Node | undefined → Node | null
+      // - 의미: undefined를 null로 변환하여 타입 일관성 보장
+      // - 사용 이유: TypeScript 타입 에러 방지
+      let startNode: Node | null = range.startContainer || null;
       while (startNode && !startBlock) {
         if (startNode.nodeType === Node.ELEMENT_NODE) {
           startBlock = (startNode as Element).closest('p,h1,h2,h3,li,ul,ol');
@@ -228,7 +295,7 @@ function MarkdownPreview({
         startNode = startNode.parentNode;
       }
 
-      let endNode: Node | null = range?.endContainer;
+      let endNode: Node | null = range.endContainer || null;
       while (endNode && !endBlock) {
         if (endNode.nodeType === Node.ELEMENT_NODE) {
           endBlock = (endNode as Element).closest('p,h1,h2,h3,li,ul,ol');
@@ -312,6 +379,9 @@ function MarkdownPreview({
     ]
   );
 
+  // 핸들러: 터치 시작
+  // - 의미: 모바일 터치 이벤트 시작
+  // - 사용 이유: 모바일 텍스트 선택
   const handleTouchStart = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       const touch = e.touches[0];
@@ -324,6 +394,9 @@ function MarkdownPreview({
     []
   );
 
+  // 핸들러: 터치 이동
+  // - 의미: 모바일 터치 이동 추적
+  // - 사용 이유: 텍스트 선택 범위 확인
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
     console.log('Touch Move:', {
@@ -333,7 +406,10 @@ function MarkdownPreview({
     });
   }, []);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+  // 핸들러: 터치 종료
+  // - 의미: 모바일 텍스트 선택 완료
+  // - 사용 이유: 선택된 텍스트 저장
+  const handleTouchEnd = useCallback((_e: React.TouchEvent<HTMLDivElement>) => {
     console.log('Touch End Detected');
     setTimeout(() => {
       const selection = window.getSelection();
@@ -354,6 +430,9 @@ function MarkdownPreview({
     }, 100);
   }, []);
 
+  // 효과: 모바일 터치 이벤트 리스너
+  // - 의미: 터치 이벤트 등록
+  // - 사용 이유: 모바일 텍스트 선택 지원
   useEffect(() => {
     if (isMobile) {
       document.addEventListener('touchend', handleTouchEnd as any);
@@ -363,9 +442,11 @@ function MarkdownPreview({
     }
   }, [isMobile, handleTouchEnd]);
 
+  // 핸들러: 텍스트 삽입
+  // - 의미: 모바일 선택 텍스트를 편집기에 삽입
+  // - 사용 이유: 편집기와 미리보기 연동
   const handleInsertText = () => {
     if (selectedMobileText) {
-      const currentMarkdown = markdown;
       setSelectedText(selectedMobileText);
       console.log('Inserting text into editor:', selectedMobileText);
       if (onClose) {
@@ -374,6 +455,9 @@ function MarkdownPreview({
     }
   };
 
+  // 핸들러: 키보드 이벤트
+  // - 의미: 검색어 네비게이션
+  // - 사용 이유: 사용자 편의성
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (matches.length <= 1) return;
@@ -389,6 +473,9 @@ function MarkdownPreview({
   );
 
   return (
+    // 컨테이너: 미리보기 레이아웃
+    // - 의미: 마크다운과 검색어 입력 UI 배치
+    // - 사용 이유: 사용자 친화적 인터페이스
     <div
       className="flex-1"
       style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
@@ -404,17 +491,22 @@ function MarkdownPreview({
             type="text"
             placeholder="검색어를 입력하세요 (예: 안녕)"
             value={field.value || ''}
-            onChange={(e) => field.onChange(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              field.onChange(value);
+              setValue('searchTerm', value, { shouldValidate: true });
+              setSearchTerm(value); // Zustand 동기화
+            }}
             onKeyDown={handleKeyDown}
             className="mb-2"
-            aria-label="미리보기 검색"
+            aria-label="미리보기 검색" // 웹 접근성
           />
         )}
       />
       {matches.length > 0 && (
         <div className="flex items-center gap-2 mb-2 text-sm">
           <Button
-            type="button"
+            type="button" // 웹 접근성: 버튼 타입 명시
             variant="outline"
             onClick={() =>
               setCurrentMatchIndex(
@@ -426,7 +518,7 @@ function MarkdownPreview({
             이전
           </Button>
           <Button
-            type="button"
+            type="button" // 웹 접근성: 버튼 타입 명시
             variant="outline"
             onClick={() =>
               setCurrentMatchIndex((prev) => (prev + 1) % matches.length)
@@ -450,10 +542,15 @@ function MarkdownPreview({
         onTouchMove={isMobile ? handleTouchMove : undefined}
         onTouchEnd={isMobile ? handleTouchEnd : undefined}
         dangerouslySetInnerHTML={{ __html: highlightedHTML || '' }}
+        aria-live="polite" // 웹 접근성: 콘텐츠 변경 알림
       />
       {isMobile && selectedMobileText && (
         <div className="mt-2">
-          <Button type="button" onClick={handleInsertText}>
+          <Button
+            type="button"
+            onClick={handleInsertText}
+            aria-label="에디터에 삽입"
+          >
             에디터에 삽입
           </Button>
         </div>
@@ -463,3 +560,4 @@ function MarkdownPreview({
 }
 
 export default MarkdownPreview;
+//====여기까지 수정됨====

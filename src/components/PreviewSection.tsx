@@ -8,33 +8,31 @@
 //   2. 제목, 요약, 내용, 마크다운, 태그, 이미지 등 렌더링
 //   3. ReactMarkdown으로 마크다운 콘텐츠 표시
 //   4. flex 레이아웃으로 반응형 UI 구성
-// - 관련 키워드: react-hook-form, react-markdown, flexbox, shadcn/ui
+// - 관련 키워드: react-hook-form, react-markdown, tailwindcss, flexbox, shadcn/ui
 
 import { useFormContext } from 'react-hook-form';
-import type { BlogPostFormData } from '../types/blog-post';
 import ReactMarkdown from 'react-markdown';
 import PostGuidelines from './PostGuidelines';
 
-// 함수: 미리보기 섹션
+// 타입: 이미지 아이템
+// - 의미: 업로드된 이미지 정보 구조
+// - 사용 이유: 타입 안전성 보장
+type ImageItem = {
+  preview?: string;
+  name?: string;
+  size?: number;
+};
+
+// PreviewSection: 미리보기 섹션
 // - 의미: 작성된 데이터 렌더링
 // - 사용 이유: 최종 포스트 확인
 function PreviewSection() {
-  // 폼 컨텍스트
-  // - 의미: 폼 데이터 접근
-  // - 사용 이유: 실시간 데이터 렌더링
-  // - Fallback: 컨텍스트 없으면 오류 메시지
-  const formContext = useFormContext<BlogPostFormData>();
-  if (!formContext) {
-    return (
-      // 오류 메시지
-      // - 의미: 폼 컨텍스트 오류 표시
-      // - 사용 이유: 사용자에게 문제 알림
-      <div className="text-red-500">오류: 폼 컨텍스트를 찾을 수 없습니다.</div>
-    );
-  }
-  const { watch } = formContext;
+  // FormProvider로부터 폼 메서드들을 가져옴
+  // - 의미: 상위 컴포넌트에서 전달된 폼 컨텍스트 사용
+  // - 사용 이유: props drilling 없이 폼 상태에 접근
+  const { watch, setValue } = useFormContext();
 
-  // 값: 폼 데이터
+  // 값: 폼 데이터 - 타입 안전한 처리
   // - 의미: 각 필드 값 추적
   // - 사용 이유: 미리보기 렌더링
   // - Fallback: 빈 문자열 또는 배열
@@ -43,8 +41,8 @@ function PreviewSection() {
   const content = watch('content') || '내용 없음';
   const markdown = watch('markdown') || '';
   const category = watch('category') || '카테고리 없음';
-  const tags = watch('tags') || [];
-  const coverImage = watch('coverImage') || [];
+  const tags: string[] = watch('tags') || [];
+  const coverImage: ImageItem[] = watch('coverImage') || [];
 
   return (
     // 컨테이너: 반응형 레이아웃
@@ -53,21 +51,18 @@ function PreviewSection() {
     <div className="px-4 space-y-6 sm:px-6 md:px-8">
       {/* 가이드라인 컴포넌트 */}
       {/* - 의미: 작성 가이드 표시 */}
-      {/* - 사용 이유: 사용자에게 지침 제공 */}
-      <PostGuidelines tab="preview" />
+      <PostGuidelines tab="preview" setValue={setValue} />
       {/* 날짜 및 내용 컨테이너 */}
       {/* - 의미: 날짜와 미리보기 데이터 배치 */}
-      {/* - 사용 이유: 날짜 우측 상단 고정 */}
       <div className="flex flex-col gap-6">
         {/* 날짜 표시 */}
         {/* - 의미: 현재 작성 날짜 표시 */}
         {/* - 사용 이유: 작성 시점 제공 */}
         <span className="text-sm text-gray-500" style={{ marginLeft: 'auto' }}>
-          작성 날짜: {formatCurrentDate()}
+          작성 날짜: {new Date().toLocaleDateString('ko-KR')}
         </span>
         {/* 미리보기 컨테이너 */}
         {/* - 의미: 데이터 렌더링 */}
-        {/* - 사용 이유: 사용자 확인 용이 */}
         <div className="flex flex-col gap-6">
           {/* 제목 */}
           <div>
@@ -96,14 +91,14 @@ function PreviewSection() {
             <h3 className="text-lg font-medium">카테고리</h3>
             <p className="text-gray-800">{category}</p>
           </div>
-          {/* 태그 */}
+          {/* 태그 - 타입 안전한 처리 */}
           <div>
             <h3 className="text-lg font-medium">태그</h3>
             <div className="flex flex-wrap gap-2">
               {tags.length > 0 ? (
-                tags.map((tag) => (
+                tags.map((tag: string, index: number) => (
                   <span
-                    key={tag}
+                    key={`${tag}-${index}`}
                     className="px-3 py-1 text-sm bg-gray-200 rounded-full"
                   >
                     {tag}
@@ -114,17 +109,24 @@ function PreviewSection() {
               )}
             </div>
           </div>
-          {/* 이미지 */}
+          {/* 이미지 - 타입 안전한 처리 */}
           <div>
             <h3 className="text-lg font-medium">이미지</h3>
             <div className="flex flex-wrap gap-4">
               {coverImage.length > 0 ? (
-                coverImage.map((img, index) => (
+                coverImage.map((img: ImageItem, index: number) => (
                   <img
-                    key={index}
+                    key={`image-${index}`}
                     src={img.preview || ''}
                     alt={`이미지 ${index + 1}`}
                     className="object-cover w-32 h-32 rounded"
+                    onError={(e) => {
+                      // 이미지 로드 실패 시 대체 처리
+                      // - 의미: 깨진 이미지 방지
+                      // - 사용 이유: 사용자 경험 개선
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
                   />
                 ))
               ) : (

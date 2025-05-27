@@ -11,16 +11,28 @@
 //   6. 요약 필드 추가, 내용 필드 optional 처리
 // - 관련 키워드: react-hook-form, shadcn/ui, flexbox, Textarea, Zod
 
+//====여기부터 수정됨====
+import { useFormContext } from 'react-hook-form';
 import PostGuidelines from '../../../components/PostGuidelines';
 import BlogTitle from './parts/BlogTitle';
 import BlogSummary from './parts/BlogSummary';
 import BlogCategory from './parts/BlogCategory';
 import BlogContent from './parts/BlogContent';
+import type { blogPostSchemaType } from '../schema/blogPostSchema';
 
 function BasicInfoSection() {
+  // React Hook Form의 FormProvider로부터 폼 메서드들을 가져옴
+  // - 의미: 상위 컴포넌트에서 전달된 폼 컨텍스트 사용
+  // - 사용 이유: props drilling 없이 폼 상태에 접근
+  // - 작동 매커니즘: FormProvider > useFormContext로 상태 공유
+  const { setValue } = useFormContext<blogPostSchemaType>();
+
   return (
     <div className="px-4 space-y-6 sm:px-6 md:px-8">
-      <PostGuidelines tab="basic" />
+      {/* PostGuidelines에 필요한 setValue prop 전달 */}
+      {/* - 의미: 가이드라인 컴포넌트에서 폼 값 설정이 필요할 때 사용 */}
+      {/* - 사용 이유: PostGuidelines에서 setValue가 필수 prop으로 요구됨 */}
+      <PostGuidelines tab="basic" setValue={setValue} />
       <div className="flex flex-col gap-6">
         <BlogTitle />
         <BlogSummary />
@@ -33,3 +45,4 @@ function BasicInfoSection() {
 }
 
 export default BasicInfoSection;
+//====여기까지 수정됨====
