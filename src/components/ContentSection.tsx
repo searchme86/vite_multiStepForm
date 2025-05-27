@@ -10,7 +10,7 @@
 //   4. Zustand로 태그, 마크다운, 검색어 동기화
 // - 관련 키워드: react-hook-form, zustand, shadcn/ui, tailwindcss, flexbox
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Button } from './ui/button';
 import { FormMessage } from './ui/form';
@@ -74,11 +74,28 @@ function ContentSection() {
 
   // Zustand 상태 및 setter - 안전한 타입 처리
   // - 의미: 태그, 마크다운, 검색어 상태 동기화
-  // - 사용 이유: Zustand로 지속성 보장
+  // - 사용 이유: Zustand로 선택적 지속성 보장 (미리보기 제외)
   const store = useStepFieldsStateStore();
   const setTags = store.setTags || (() => {}); // fallback 함수 제공
-  const setMarkdown = store.setMarkdown || (() => {}); // fallback 함수 제공
-  const setSearchTerm = store.setSearchTerm || (() => {}); // fallback 함수 제공
+  const setMarkdown = store.setMarkdown || (() => {}); // fallback 함수 제공 (세션별 초기화)
+  const setSearchTerm = store.setSearchTerm || (() => {}); // fallback 함수 제공 (세션별 초기화)
+
+  // 컴포넌트 마운트 시 미리보기 관련 상태 초기화
+  // - 의미: 페이지 로드 시 마크다운 미리보기 관련 상태만 초기화
+  // - 사용 이유: 브라우저 리프레시 시 미리보기는 새로 시작
+  React.useEffect(() => {
+    // 마크다운과 검색어만 초기화 (다른 폼 데이터는 유지)
+    setValue('markdown', '', { shouldValidate: false });
+    setValue('searchTerm', '', { shouldValidate: false });
+
+    // Zustand에서도 초기화 (실제로는 저장되지 않지만 세션 내 상태 초기화)
+    setMarkdown('');
+    setSearchTerm('');
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('ContentSection: Markdown preview states cleared on mount');
+    }
+  }, []); // 컴포넌트 마운트 시에만 실행
 
   // 필드 배열 관리 - 타입 안전한 처리
   // - 의미: 'tags' 필드를 배열로 관리
