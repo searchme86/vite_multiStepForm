@@ -15,11 +15,12 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Button } from './ui/button';
 import { FormMessage } from './ui/form';
 import PostGuidelines from './PostGuidelines';
-import TagAutoComplete from './TagAutoComplete';
+// import TagAutoComplete from './TagAutoComplete';
 import MarkdownEditor from './MarkdownEditor';
 import MarkdownPreview from './MarkdownPreview';
 import { Drawer } from 'vaul';
 import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import TagManagementContainer from './TagManagementContainer';
 
 // vaul.css를 조건부로 import
 // - 의미: Drawer 컴포넌트 스타일 적용
@@ -159,7 +160,7 @@ function ContentSection() {
         <div className="flex flex-col gap-6">
           {/* 태그 입력 컴포넌트 */}
           {/* - 의미: 태그 입력 UI 제공 */}
-          <TagAutoComplete
+          {/* <TagAutoComplete
             onAddTags={(newTags) => {
               // 현재 태그 값 추출 - 타입 안전한 처리
               const currentValues = typedFields.map((field) => field.value);
@@ -173,21 +174,21 @@ function ContentSection() {
               setValue('tags', updatedTags, { shouldValidate: true });
               setTags(updatedTags); // Zustand 동기화
             }}
-          />
+          /> */}
+          <TagManagementContainer />
           {/* 태그 목록 표시 */}
           {/* - 의미: 추가된 태그를 칩 형태로 표시 */}
-          <div className="flex flex-wrap w-full gap-2" role="list">
+          {/* <div className="flex flex-wrap w-full gap-2" role="list">
             {typedFields.map((field, index) => (
               <div
                 key={field.id}
                 className="flex items-center px-3 py-1 text-sm bg-gray-200 rounded-full"
                 role="listitem"
               >
-                {/* 태그 값 표시 */}
                 <span>{field.value}</span>
-                {/* 태그 삭제 버튼 */}
+
                 <Button
-                  type="button" // 웹 접근성: 버튼 타입 명시
+                  type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => {
@@ -196,7 +197,7 @@ function ContentSection() {
                       .filter((_, i) => i !== index)
                       .map((f) => f.value);
                     setValue('tags', newTags, { shouldValidate: true });
-                    setTags(newTags); // Zustand 동기화
+                    setTags(newTags);
                   }}
                   aria-label={`태그 ${field.value} 삭제`}
                   className="ml-2"
@@ -205,7 +206,6 @@ function ContentSection() {
                 </Button>
               </div>
             ))}
-            {/* 태그 오류 메시지 - 타입 안전한 처리 */}
             {errors.tags && (
               <FormMessage>
                 {typeof errors.tags.message === 'string'
@@ -213,7 +213,7 @@ function ContentSection() {
                   : '태그 입력에 오류가 있습니다.'}
               </FormMessage>
             )}
-          </div>
+          </div> */}
           {/* 편집기 및 미리보기 컨테이너 */}
           {/* - 의미: 마크다운 편집기와 미리보기 배치 */}
           <div className="flex flex-col gap-6 min-h-[400px] md:flex-row">
