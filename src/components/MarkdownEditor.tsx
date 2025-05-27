@@ -10,7 +10,7 @@
 //   4. 선택된 텍스트 하이라이트 및 오류 처리
 // - 관련 키워드: react-hook-form, zustand, react-quill, tailwindcss, flexbox
 
-import { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import ReactQuill from 'react-quill';
 // CSS 스타일시트를 조건부로 import
 // - 의미: ReactQuill 테마 스타일 적용
@@ -97,7 +97,7 @@ function MarkdownEditor({
 }: MarkdownEditorProps) {
   // 개발 환경 로그
   // - 의미: 렌더링 확인
-  // - 사용 이유: 디버깅
+  // - 사용 이루: 디버깅
   if (process.env.NODE_ENV === 'development') {
     console.log('MarkdownEditor: Rendering');
   }
@@ -113,6 +113,10 @@ function MarkdownEditor({
   const highlightedRangeRef = useRef<{ index: number; length: number } | null>(
     null
   );
+  // 상태: 현재 에디터 값
+  // - 의미: 무한 렌더링 방지를 위한 안정적인 값 관리
+  // - 사용 이유: ReactQuill value prop 최적화
+  const [editorValue, setEditorValue] = React.useState('');
 
   // 디바운스된 setValue 및 setMarkdown
   // - 의미: 입력 지연 처리
@@ -127,6 +131,17 @@ function MarkdownEditor({
     }, 300),
     [setValue, setMarkdown]
   );
+
+  // 함수: 텍스트 정규화
+  // - 의미: HTML과 Plain Text 간 일관성 보장
+  // - 사용 이유: 텍스트 매핑 정확도 향상
+  const normalizeText = useCallback((text: string): string => {
+    return text
+      .replace(/\s+/g, ' ') // 여러 공백을 하나로
+      .replace(/&nbsp;/g, ' ') // HTML 공백 엔티티 변환
+      .replace(/\u00A0/g, ' ') // 유니코드 공백 변환
+      .trim();
+  }, []);
 
   // 효과: 선택된 텍스트 하이라이트
   // - 의미: 미리보기에서 선택된 텍스트 표시
@@ -155,66 +170,98 @@ function MarkdownEditor({
     }
 
     const fullText = quill.getText();
-    const blockText = selectedBlockText.replace(/\s+/g, ' ').trim();
-    const searchTextNormalized = selectedText.replace(/\s+/g, ' ').trim();
+    // 개선된 텍스트 정규화
+    // - 의미: HTML과 Plain Text 간 일관성 보장
+    // - 사용 이유: 텍스트 매핑 정확도 향상
+    const normalizedFullText = normalizeText(fullText);
+    const normalizedBlockText = normalizeText(selectedBlockText);
+    const normalizedSearchText = normalizeText(selectedText);
 
-    const indices = [];
-    let index = fullText.indexOf(blockText);
-    while (index !== -1) {
-      indices.push(index);
-      index = fullText.indexOf(blockText, index + 1);
+    // 유연한 텍스트 검색
+    // - 의미: 부분 문자열 매칭으로 검색 성공률 향상
+    // - 사용 이유: HTML 변환으로 인한 텍스트 차이 해결
+    let foundPosition = -1;
+    let searchStartIndex = 0;
+
+    // 블록 텍스트 찾기
+    const blockIndex = normalizedFullText.indexOf(normalizedBlockText);
+    if (blockIndex !== -1) {
+      searchStartIndex = blockIndex;
     }
 
-    for (const start of indices) {
-      const position = start + selectedOffset;
-      if (position < 0 || position + selectedLength > fullText.length) continue;
-      const editorText = fullText
-        .substring(position, position + selectedLength)
-        .replace(/\s+/g, ' ')
-        .trim();
-      if (editorText === searchTextNormalized) {
-        if (highlightedRangeRef.current) {
-          quill.formatText(
-            highlightedRangeRef.current.index,
-            highlightedRangeRef.current.length,
-            'background',
-            false
-          );
-        }
-        quill.formatText(position, selectedLength, 'background', '#ADD8E6');
-        const appliedFormats = quill.getFormat(position, selectedLength);
-        console.log('Applied formats:', appliedFormats);
-        highlightedRangeRef.current = {
-          index: position,
-          length: selectedLength,
-        };
-        setTimeout(() => {
-          quill.setSelection(position, 0);
-          quill.focus();
-        }, 0);
-        if (process.env.NODE_ENV === 'development') {
-          console.log(
-            'MarkdownEditor: Highlighted from',
-            position,
-            'to',
-            position + selectedLength,
-            'and moved cursor to',
-            position
-          );
-        }
-        return;
+    // 선택된 텍스트 찾기 (부분 매칭 포함)
+    if (normalizedSearchText.length >= 3) {
+      // 최소 3글자 이상일 때만 검색
+      foundPosition = normalizedFullText.indexOf(
+        normalizedSearchText,
+        searchStartIndex
+      );
+
+      // 부분 매칭으로 재시도
+      if (foundPosition === -1 && normalizedSearchText.length > 10) {
+        const partialSearch = normalizedSearchText.substring(
+          0,
+          Math.min(20, normalizedSearchText.length)
+        );
+        foundPosition = normalizedFullText.indexOf(
+          partialSearch,
+          searchStartIndex
+        );
       }
     }
 
-    setErrorMessage({
-      type: 'mapping-failed',
-      text: '선택한 텍스트를 찾을 수 없습니다.',
-    });
-    if (process.env.NODE_ENV === 'development') {
-      console.log('MarkdownEditor: Selected text not found in any block', {
-        fullText,
-        blockText,
-        searchText: selectedText,
+    if (foundPosition !== -1) {
+      // 기존 하이라이트 제거
+      if (highlightedRangeRef.current) {
+        quill.formatText(
+          highlightedRangeRef.current.index,
+          highlightedRangeRef.current.length,
+          'background',
+          false
+        );
+      }
+
+      // 새 하이라이트 적용
+      const highlightLength = Math.min(
+        normalizedSearchText.length,
+        normalizedFullText.length - foundPosition
+      );
+      quill.formatText(foundPosition, highlightLength, 'background', '#ADD8E6');
+
+      highlightedRangeRef.current = {
+        index: foundPosition,
+        length: highlightLength,
+      };
+
+      // 커서 위치 설정 (지연 실행으로 안정성 보장)
+      setTimeout(() => {
+        try {
+          quill.setSelection(foundPosition, 0);
+          quill.focus();
+          if (process.env.NODE_ENV === 'development') {
+            console.log(
+              'MarkdownEditor: Successfully highlighted and positioned cursor at',
+              foundPosition
+            );
+          }
+        } catch (e) {
+          console.warn('MarkdownEditor: Failed to set cursor position', e);
+        }
+      }, 100); // 100ms 지연으로 안정성 향상
+    } else {
+      // 텍스트를 찾지 못한 경우 상세 로그
+      if (process.env.NODE_ENV === 'development') {
+        console.log('MarkdownEditor: Text search failed', {
+          fullTextLength: normalizedFullText.length,
+          blockTextLength: normalizedBlockText.length,
+          searchTextLength: normalizedSearchText.length,
+          searchText: normalizedSearchText.substring(0, 50) + '...',
+        });
+      }
+
+      setErrorMessage({
+        type: 'mapping-failed',
+        text: '선택한 텍스트를 찾을 수 없습니다. 다시 시도해보세요.',
       });
     }
   }, [
@@ -223,6 +270,7 @@ function MarkdownEditor({
     selectedLength,
     selectedText,
     setErrorMessage,
+    normalizeText,
   ]);
 
   // 핸들러: 텍스트 변경
@@ -235,42 +283,55 @@ function MarkdownEditor({
     source: string
     // editor 매개변수 제거 - 사용되지 않음
   ) => {
+    // API 변경은 무시 (무한 렌더링 방지)
+    // - 의미: 프로그래매틱 변경 시 처리하지 않음
+    // - 사용 이유: 사용자 입력만 처리하여 성능 최적화
     if (source !== 'user') {
       if (process.env.NODE_ENV === 'development') {
-        console.log('MarkdownEditor: Non-user change, source:', source);
+        console.log('MarkdownEditor: Non-user change ignored, source:', source);
       }
       return;
     }
 
+    // 에디터 값 업데이트
+    // - 의미: 무한 렌더링 방지를 위한 안정적인 값 관리
+    // - 사용 이유: ReactQuill value prop 최적화
+    setEditorValue(value);
+
     isUserTyping.current = true;
     if (process.env.NODE_ENV === 'development') {
-      console.log('MarkdownEditor: Text changed, source:', source);
+      console.log('MarkdownEditor: Text changed by user');
     }
 
+    // 선택 영역 보존
     let selection: { index: number; length: number } | null = null;
     if (quillRef.current) {
       const quill = quillRef.current.getEditor();
       try {
         selection = quill.getSelection();
-        if (process.env.NODE_ENV === 'development') {
-          console.log('MarkdownEditor: Cursor position', selection);
-        }
       } catch (e) {
         console.warn('MarkdownEditor: Failed to get selection', e);
       }
     }
 
+    // 디바운스로 폼 업데이트
     debouncedSetValue(value);
 
+    // 선택 영역 복원 (지연 실행)
     if (selection && quillRef.current) {
-      const quill = quillRef.current.getEditor();
-      try {
-        quill.setSelection(selection.index, selection.length);
-      } catch (e) {
-        console.warn('MarkdownEditor: Failed to restore selection', e);
-      }
+      setTimeout(() => {
+        if (quillRef.current) {
+          const quill = quillRef.current.getEditor();
+          try {
+            quill.setSelection(selection.index, selection.length);
+          } catch (e) {
+            console.warn('MarkdownEditor: Failed to restore selection', e);
+          }
+        }
+      }, 10);
     }
 
+    // 타이핑 상태 해제
     setTimeout(() => {
       isUserTyping.current = false;
     }, 100);
@@ -303,7 +364,7 @@ function MarkdownEditor({
         {/* - 해결: ReactQuill 업데이트 또는 대안 라이브러리 사용 권장 */}
         <ReactQuill
           ref={quillRef}
-          value={quillRef.current?.getEditor().getText() || ''}
+          value={editorValue}
           onChange={handleTextChange}
           modules={modules}
           formats={formats}
