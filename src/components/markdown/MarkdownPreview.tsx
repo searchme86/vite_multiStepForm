@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Controller } from 'react-hook-form';
+import {
+  Controller,
+  type Control,
+  type FieldValues,
+  type UseFormSetValue,
+} from 'react-hook-form';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import type { blogPostSchemaType } from '../../pages/write/schema/blogPostSchema';
@@ -19,10 +24,10 @@ interface MarkdownPreviewProps {
   setErrorMessage: (message: ErrorMessage | null) => void;
   isMobile?: boolean;
   onClose?: () => void;
-  setValue: (name: keyof blogPostSchemaType, value: any, options?: any) => void;
+  setValue: UseFormSetValue<FieldValues>;
   setSearchTerm: (value: string) => void;
-  control: any;
-  watch: any;
+  control: Control<FieldValues>;
+  watch: (name?: string | string[] | undefined) => unknown;
 }
 
 const highlightSearchTerm = (html: string, searchTerm: string): string => {
@@ -139,51 +144,46 @@ function MarkdownPreview({
   watch,
 }: MarkdownPreviewProps) {
   const zustandStore = useStepFieldsStateStore();
-  const markdown = watch('markdown') || '';
-  const searchTerm = watch('searchTerm') || '';
+  const markdown = (watch('markdown') as string) || '';
+  const searchTerm = (watch('searchTerm') as string) || '';
 
   const [matches, setMatches] = useState<Element[]>([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
   const [selectedMobileText, setSelectedMobileText] = useState<string | null>(
     null
   );
+  const [isInitialized, setIsInitialized] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const isSelecting = useRef(false);
 
   useEffect(() => {
-    const storedSearchTerm =
-      zustandStore.getSearchTerm?.() || zustandStore.state?.searchTerm || '';
-    const storedMarkdown =
-      zustandStore.getMarkdown?.() || zustandStore.state?.markdown || '';
+    if (isInitialized) return;
 
-    if (storedSearchTerm) {
-      setValue('searchTerm', storedSearchTerm, { shouldValidate: false });
-      setSearchTerm(storedSearchTerm);
+    const storedSearchTerm = zustandStore.state?.searchTerm || '';
+    const storedMarkdown = zustandStore.state?.markdown || '';
+
+    if (storedSearchTerm && !searchTerm) {
+      setValue('searchTerm', storedSearchTerm);
     }
 
     if (storedMarkdown && !markdown) {
-      setValue('markdown', storedMarkdown, { shouldValidate: false });
+      setValue('markdown', storedMarkdown);
     }
-  }, []);
+
+    setIsInitialized(true);
+  }, [isInitialized, setValue, searchTerm, markdown, zustandStore.state]);
 
   const highlightedHTML = React.useMemo(() => {
-    const htmlContent =
-      markdown ||
-      zustandStore.getMarkdown?.() ||
-      zustandStore.state?.markdown ||
-      '';
+    const htmlContent = markdown || zustandStore.state?.markdown || '';
     const currentSearchTerm =
-      searchTerm ||
-      zustandStore.getSearchTerm?.() ||
-      zustandStore.state?.searchTerm ||
-      '';
-
-    if (currentSearchTerm && zustandStore.setSearchTerm) {
-      zustandStore.setSearchTerm(currentSearchTerm);
-    }
-
+      searchTerm || zustandStore.state?.searchTerm || '';
     return highlightSearchTerm(htmlContent, currentSearchTerm);
-  }, [markdown, searchTerm, zustandStore]);
+  }, [
+    markdown,
+    searchTerm,
+    zustandStore.state?.markdown,
+    zustandStore.state?.searchTerm,
+  ]);
 
   useEffect(() => {
     if (!previewRef.current) return;
@@ -253,191 +253,181 @@ function MarkdownPreview({
     return -1;
   };
 
-  const handleStart = useCallback(
-    (
-      e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
-    ) => {
-      if (
-        e.target instanceof HTMLElement &&
-        (e.target.tagName === 'INPUT' ||
-          e.target.tagName === 'BUTTON' ||
-          e.target.tagName === 'IMG')
-      ) {
-        return;
-      }
-      isSelecting.current = true;
-      setErrorMessage(null);
-    },
-    [setErrorMessage]
-  );
+  const handleStart = useCallback(() => {
+    isSelecting.current = true;
+    setErrorMessage(null);
+  }, [setErrorMessage]);
 
-  const handleEnd = useCallback(
-    (
-      e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
-    ) => {
-      if (!isSelecting.current) return;
-      isSelecting.current = false;
-      const selection = window.getSelection();
-      const selectedText = selection?.toString().trim();
+  const handleEnd = useCallback(() => {
+    if (!isSelecting.current) return;
+    isSelecting.current = false;
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim();
 
-      if (!selectedText) {
-        selection?.removeAllRanges();
-        return;
-      }
-
-      const range = selection?.getRangeAt(0);
-      if (!range) {
-        setErrorMessage({
-          type: 'mapping-failed',
-          text: '선택 범위를 가져올 수 없습니다.',
-        });
-        return;
-      }
-
-      let startBlock: Element | null = null;
-      let endBlock: Element | null = null;
-
-      let startNode: Node | null = range.startContainer || null;
-      while (startNode && !startBlock) {
-        if (startNode.nodeType === Node.ELEMENT_NODE) {
-          startBlock = (startNode as Element).closest(
-            'p,h1,h2,h3,li,ul,ol,div'
-          );
-        }
-        startNode = startNode.parentNode;
-      }
-
-      let endNode: Node | null = range.endContainer || null;
-      while (endNode && !endBlock) {
-        if (endNode.nodeType === Node.ELEMENT_NODE) {
-          endBlock = (endNode as Element).closest('p,h1,h2,h3,li,ul,ol,div');
-        }
-        endNode = endNode.parentNode;
-      }
-
-      if (startBlock && endBlock && startBlock !== endBlock) {
-        setErrorMessage({
-          type: 'multi-block',
-          text: '여러 블록에 걸친 선택은 지원되지 않습니다. 단일 블록을 선택해주세요.',
-        });
-        selection?.removeAllRanges();
-        return;
-      }
-
-      if (startBlock) {
-        const blockText = startBlock.textContent || '';
-        const startContainer = range.startContainer;
-        const startOffsetInContainer = range.startOffset;
-        const endContainer = range.endContainer;
-        const endOffsetInContainer = range.endOffset;
-
-        if (
-          startContainer.nodeType !== Node.TEXT_NODE ||
-          endContainer.nodeType !== Node.TEXT_NODE
-        ) {
-          setErrorMessage({
-            type: 'mapping-failed',
-            text: '선택 범위가 텍스트 노드가 아닙니다.',
-          });
-          return;
-        }
-
-        const startOffset = getOffsetInBlock(
-          startBlock,
-          startContainer,
-          startOffsetInContainer
-        );
-        const endOffset = getOffsetInBlock(
-          startBlock,
-          endContainer,
-          endOffsetInContainer
-        );
-
-        if (startOffset === -1 || endOffset === -1) {
-          setErrorMessage({
-            type: 'mapping-failed',
-            text: '오프셋 계산 실패',
-          });
-          return;
-        }
-
-        setSelectedBlockText(blockText);
-        setSelectedOffset(startOffset);
-        setSelectedLength(endOffset - startOffset);
-        setSelectedText(selectedText);
-      } else {
-        setErrorMessage({
-          type: 'mapping-failed',
-          text: '텍스트 매핑이 실패했습니다',
-        });
-        setSelectedBlockText(null);
-        setSelectedOffset(null);
-        setSelectedLength(null);
-        setSelectedText(null);
-      }
+    if (!selectedText) {
       selection?.removeAllRanges();
-      if (isMobile && onClose) {
-        onClose();
+      return;
+    }
+
+    const range = selection?.getRangeAt(0);
+    if (!range) {
+      setErrorMessage({
+        type: 'mapping-failed',
+        text: '선택 범위를 가져올 수 없습니다.',
+      });
+      return;
+    }
+
+    let startBlock: Element | null = null;
+    let endBlock: Element | null = null;
+
+    let startNode: Node | null = range.startContainer || null;
+    while (startNode && !startBlock) {
+      if (startNode.nodeType === Node.ELEMENT_NODE) {
+        startBlock = (startNode as Element).closest('p,h1,h2,h3,li,ul,ol,div');
       }
-    },
-    [
-      setSelectedBlockText,
-      setSelectedOffset,
-      setSelectedLength,
-      setSelectedText,
-      setErrorMessage,
-      isMobile,
-      onClose,
-    ]
-  );
+      startNode = startNode.parentNode;
+    }
+
+    let endNode: Node | null = range.endContainer || null;
+    while (endNode && !endBlock) {
+      if (endNode.nodeType === Node.ELEMENT_NODE) {
+        endBlock = (endNode as Element).closest('p,h1,h2,h3,li,ul,ol,div');
+      }
+      endNode = endNode.parentNode;
+    }
+
+    if (startBlock && endBlock && startBlock !== endBlock) {
+      setErrorMessage({
+        type: 'multi-block',
+        text: '여러 블록에 걸친 선택은 지원되지 않습니다. 단일 블록을 선택해주세요.',
+      });
+      selection?.removeAllRanges();
+      return;
+    }
+
+    if (startBlock) {
+      const blockText = startBlock.textContent || '';
+      const startContainer = range.startContainer;
+      const startOffsetInContainer = range.startOffset;
+      const endContainer = range.endContainer;
+      const endOffsetInContainer = range.endOffset;
+
+      if (
+        startContainer.nodeType !== Node.TEXT_NODE ||
+        endContainer.nodeType !== Node.TEXT_NODE
+      ) {
+        setErrorMessage({
+          type: 'mapping-failed',
+          text: '선택 범위가 텍스트 노드가 아닙니다.',
+        });
+        return;
+      }
+
+      const startOffset = getOffsetInBlock(
+        startBlock,
+        startContainer,
+        startOffsetInContainer
+      );
+      const endOffset = getOffsetInBlock(
+        startBlock,
+        endContainer,
+        endOffsetInContainer
+      );
+
+      if (startOffset === -1 || endOffset === -1) {
+        setErrorMessage({
+          type: 'mapping-failed',
+          text: '오프셋 계산 실패',
+        });
+        return;
+      }
+
+      setSelectedBlockText(blockText);
+      setSelectedOffset(startOffset);
+      setSelectedLength(endOffset - startOffset);
+      setSelectedText(selectedText);
+    } else {
+      setErrorMessage({
+        type: 'mapping-failed',
+        text: '텍스트 매핑이 실패했습니다',
+      });
+      setSelectedBlockText(null);
+      setSelectedOffset(null);
+      setSelectedLength(null);
+      setSelectedText(null);
+    }
+    selection?.removeAllRanges();
+    if (isMobile && onClose) {
+      onClose();
+    }
+  }, [
+    setSelectedBlockText,
+    setSelectedOffset,
+    setSelectedLength,
+    setSelectedText,
+    setErrorMessage,
+    isMobile,
+    onClose,
+  ]);
 
   const handleTouchStart = useCallback(
-    (e: React.TouchEvent<HTMLDivElement>) => {
-      const touch = e.touches[0];
+    (event: React.TouchEvent<HTMLDivElement>) => {
+      const touch = event.touches[0];
       console.log('Touch Start:', {
         x: touch.clientX,
         y: touch.clientY,
-        target: (e.target as HTMLElement).tagName,
+        target: (event.target as HTMLElement).tagName,
       });
     },
     []
   );
 
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    console.log('Touch Move:', {
-      x: touch.clientX,
-      y: touch.clientY,
-      target: (e.target as HTMLElement).tagName,
-    });
-  }, []);
+  const handleTouchMove = useCallback(
+    (event: React.TouchEvent<HTMLDivElement>) => {
+      const touch = event.touches[0];
+      console.log('Touch Move:', {
+        x: touch.clientX,
+        y: touch.clientY,
+        target: (event.target as HTMLElement).tagName,
+      });
+    },
+    []
+  );
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    console.log('Touch End Detected');
-    setTimeout(() => {
-      const selection = window.getSelection();
-      if (selection && previewRef.current?.contains(selection.anchorNode)) {
-        const text = selection.toString().trim();
-        console.log('Selected Text on Mobile:', text);
-        if (text) {
-          setSelectedMobileText(text);
-          console.log('Drag Action Successful: Text selected -', text);
+  const handleTouchEnd = useCallback(
+    (_event: React.TouchEvent<HTMLDivElement>) => {
+      console.log('Touch End Detected');
+      setTimeout(() => {
+        const selection = window.getSelection();
+        if (selection && previewRef.current?.contains(selection.anchorNode)) {
+          const text = selection.toString().trim();
+          console.log('Selected Text on Mobile:', text);
+          if (text) {
+            setSelectedMobileText(text);
+            console.log('Drag Action Successful: Text selected -', text);
+          } else {
+            setSelectedMobileText(null);
+            console.log('Drag Action Failed: No text selected');
+          }
         } else {
           setSelectedMobileText(null);
-          console.log('Drag Action Failed: No text selected');
+          console.log('Drag Action Failed: Selection outside preview');
         }
-      } else {
-        setSelectedMobileText(null);
-        console.log('Drag Action Failed: Selection outside preview');
-      }
-    }, 100);
-  }, []);
+      }, 100);
+    },
+    []
+  );
 
   useEffect(() => {
     if (isMobile) {
-      document.addEventListener('touchend', handleTouchEnd as any);
+      const handleDocumentTouchEnd = (event: TouchEvent) => {
+        handleTouchEnd(event as unknown as React.TouchEvent<HTMLDivElement>);
+      };
+
+      document.addEventListener('touchend', handleDocumentTouchEnd);
       return () => {
-        document.removeEventListener('touchend', handleTouchEnd as any);
+        document.removeEventListener('touchend', handleDocumentTouchEnd);
       };
     }
   }, [isMobile, handleTouchEnd]);
@@ -453,17 +443,27 @@ function MarkdownPreview({
   };
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (keyEvent: React.KeyboardEvent<HTMLInputElement>) => {
       if (matches.length <= 1) return;
-      if (e.key === 'Enter' && e.shiftKey) {
+      if (keyEvent.key === 'Enter' && keyEvent.shiftKey) {
         setCurrentMatchIndex(
           (prev) => (prev - 1 + matches.length) % matches.length
         );
-      } else if (e.key === 'Enter') {
+      } else if (keyEvent.key === 'Enter') {
         setCurrentMatchIndex((prev) => (prev + 1) % matches.length);
       }
     },
     [matches.length]
+  );
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchTerm(value);
+      if (zustandStore.setSearchTerm) {
+        zustandStore.setSearchTerm(value);
+      }
+    },
+    [setSearchTerm, zustandStore.setSearchTerm]
   );
 
   return (
@@ -482,14 +482,11 @@ function MarkdownPreview({
             type="text"
             placeholder="검색어를 입력하세요 (예: 안녕)"
             value={field.value || ''}
-            onChange={(e) => {
-              const value = e.target.value;
+            onChange={(inputEvent) => {
+              const value = inputEvent.target.value;
               field.onChange(value);
-              setValue('searchTerm', value, { shouldValidate: true });
-              setSearchTerm(value);
-              if (zustandStore.setSearchTerm) {
-                zustandStore.setSearchTerm(value);
-              }
+              setValue('searchTerm', value);
+              handleSearchChange(value);
             }}
             onKeyDown={handleKeyDown}
             className="mb-2"
