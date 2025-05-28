@@ -10,7 +10,7 @@
 //   4. Zustand로 태그, 마크다운, 검색어 동기화
 // - 관련 키워드: react-hook-form, zustand, shadcn/ui, tailwindcss, flexbox
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import PostGuidelines from './PostGuidelines';
 import MarkdownEditor from './markdown/MarkdownEditor';
@@ -63,23 +63,6 @@ function ContentSection() {
   const store = useStepFieldsStateStore();
   const setMarkdown = store.setMarkdown || (() => {}); // fallback 함수 제공 (세션별 초기화)
   const setSearchTerm = store.setSearchTerm || (() => {}); // fallback 함수 제공 (세션별 초기화)
-
-  // 컴포넌트 마운트 시 미리보기 관련 상태 초기화
-  // - 의미: 페이지 로드 시 마크다운 미리보기 관련 상태만 초기화
-  // - 사용 이유: 브라우저 리프레시 시 미리보기는 새로 시작
-  React.useEffect(() => {
-    // 마크다운과 검색어만 초기화 (다른 폼 데이터는 유지)
-    setValue('markdown', '', { shouldValidate: false });
-    setValue('searchTerm', '', { shouldValidate: false });
-
-    // Zustand에서도 초기화 (실제로는 저장되지 않지만 세션 내 상태 초기화)
-    setMarkdown('');
-    setSearchTerm('');
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('ContentSection: Markdown preview states cleared on mount');
-    }
-  }, [setValue, setMarkdown, setSearchTerm]); // 의존성 배열에 함수들 추가
 
   // 상태: 선택된 블록 텍스트, 오프셋, 길이, 텍스트
   // - 의미: 마크다운 편집 및 미리보기 연동
