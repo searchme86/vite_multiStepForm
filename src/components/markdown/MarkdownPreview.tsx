@@ -7,14 +7,15 @@
 //   1. watch로 마크다운과 검색어 데이터 접근 (임시 상태만)
 //   2. control로 검색어 입력 관리 (세션별 초기화)
 //   3. setValue로 폼 업데이트, setSearchTerm으로 임시 상태만 동기화
-//   4. ReactMarkdown으로 마크다운 렌더링, 검색어 하이라이트 (휘발성)
-// - 관련 키워드: react-hook-form, 휘발성 상태, react-markdown, tailwindcss, flexbox
+//   4. DOMPurify로 안전한 HTML 렌더링, 검색어 하이라이트 (휘발성)
+//   5. 이미지와 리치텍스트 완전 지원
+// - 관련 키워드: react-hook-form, 휘발성 상태, dompurify, tailwindcss, flexbox
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Controller } from 'react-hook-form';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
+import { Input } from '../../components/ui/input';
+import { Button } from '../../components/ui/button';
+import type { blogPostSchemaType } from '../../pages/write/schema/blogPostSchema';
 import DOMPurify from 'dompurify';
 
 // 타입: 오류 메시지
@@ -65,34 +66,123 @@ const highlightSearchTerm = (html: string, searchTerm: string): string => {
       textNode.parentNode?.replaceChild(span, textNode);
     }
   });
+
+  // 이미지와 리치텍스트를 위한 확장된 허용 태그 및 속성 (수정됨)
+  // - 의미: ReactQuill의 모든 기능을 안전하게 렌더링
+  // - 사용 이유: 이미지, 스타일링, 포맷팅 완전 지원
+  // - 수정: ALLOWED_SCHEMES 제거하여 TypeScript 에러 해결
   const sanitized = DOMPurify.sanitize(doc.body.innerHTML, {
     ALLOWED_TAGS: [
       'p',
       'h1',
       'h2',
       'h3',
+      'h4',
+      'h5',
+      'h6',
       'li',
-      'img',
       'ul',
       'ol',
+      'blockquote',
       'strong',
       'em',
+      'u',
+      's',
+      'sub',
+      'sup',
       'mark',
       'br',
+      'hr',
       'div',
       'span',
+      'pre',
+      'code',
+      'img', // 이미지 태그 허용
+      'a', // 링크 태그 허용
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td', // 테이블 태그
     ],
-    ALLOWED_ATTR: ['style'],
+    ALLOWED_ATTR: [
+      'style',
+      'class',
+      'id',
+      'src',
+      'alt',
+      'width',
+      'height', // 이미지 속성
+      'href',
+      'target',
+      'rel', // 링크 속성
+      'colspan',
+      'rowspan', // 테이블 속성
+      'data-*', // 데이터 속성
+    ],
+    // ALLOWED_SCHEMES 제거 - DOMPurify 버전에 따라 지원되지 않을 수 있음
+    // - 의미: 스키마 제한 없이 모든 이미지 소스 허용
+    // - 사용 이유: TypeScript 에러 방지 및 호환성 향상
+    ALLOW_DATA_ATTR: true, // 데이터 속성 허용
+    ALLOW_UNKNOWN_PROTOCOLS: false, // 알려지지 않은 프로토콜 차단
   });
+
   if (process.env.NODE_ENV === 'development') {
-    console.log('MarkdownPreview: Highlighted HTML (volatile)', sanitized);
+    console.log('MarkdownPreview: Highlighted HTML with images (volatile)', {
+      originalLength: html.length,
+      sanitizedLength: sanitized.length,
+      hasImages: sanitized.includes('<img'),
+      searchTerm: searchTerm,
+    });
   }
   return sanitized;
 };
 
+// 함수: 안전한 이미지 소스 검증
+// - 의미: 이미지 URL의 안전성 확인
+// - 사용 이유: XSS 공격 방지 및 보안 강화
+const isValidImageSource = (src: string): boolean => {
+  try {
+    // 허용되는 이미지 소스 패턴
+    // - 의미: 안전한 이미지 URL 형식만 허용
+    // - 사용 이유: 보안 위험 최소화
+    const allowedPatterns = [
+      /^https?:\/\//, // HTTP/HTTPS URL
+      /^data:image\//, // Data URI (base64 이미지)
+      /^\//, // 상대 경로 (같은 도메인)
+      /^\.\//, // 현재 디렉토리 상대 경로
+    ];
+
+    return allowedPatterns.some((pattern) => pattern.test(src));
+  } catch (error) {
+    console.warn('MarkdownPreview: Invalid image source format:', src);
+    return false;
+  }
+};
+
+// 함수: 이미지 로드 에러 처리
+// - 의미: 깨진 이미지 대체 처리
+// - 사용 이유: 사용자 경험 향상
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  if (img) {
+    // 이미지 로드 실패 시 플레이스홀더로 교체
+    // - 의미: 깨진 이미지 아이콘 대신 사용자 친화적 메시지 표시
+    // - 사용 이유: 명확한 상태 전달
+    img.src =
+      'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIExvYWQgRXJyb3I8L3RleHQ+PC9zdmc+';
+    img.alt = '이미지 로드 실패';
+    img.style.maxWidth = '200px';
+    img.style.maxHeight = '200px';
+    img.style.border = '2px dashed #ccc';
+    img.style.borderRadius = '4px';
+  }
+};
+
 // MarkdownPreview: 마크다운 미리보기 UI
 // - 의미: 마크다운 콘텐츠와 검색어 하이라이트 표시 (휘발성 상태)
-// - 사용 이유: 콘텐츠 검토, 브라우저 리프레시 시 초기화
+// - 사용 이유: 콘텐츠 검토, 브라우저 리프레시 시 초기화, 이미지 완전 지원
 function MarkdownPreview({
   setSelectedBlockText,
   setSelectedOffset,
@@ -110,7 +200,9 @@ function MarkdownPreview({
   // - 의미: 렌더링 확인 (휘발성 상태 모드)
   // - 사용 이유: 디버깅
   if (process.env.NODE_ENV === 'development') {
-    console.log('MarkdownPreview: Rendering with volatile state only');
+    console.log(
+      'MarkdownPreview: Rendering with volatile state and image support'
+    );
   }
 
   // 폼 데이터 (휘발성 상태만 사용)
@@ -123,6 +215,7 @@ function MarkdownPreview({
     console.log('MarkdownPreview: Watched volatile markdown', {
       markdownLength: markdown.length,
       searchTermLength: searchTerm.length,
+      hasImageTags: markdown.includes('<img'),
       note: 'These values will be cleared on browser refresh',
     });
   }
@@ -147,29 +240,68 @@ function MarkdownPreview({
 
   // 메모이제이션: 하이라이트된 HTML (휘발성)
   // - 의미: 마크다운과 검색어로 HTML 생성 (임시 상태)
-  // - 사용 이유: 성능 최적화, 브라우저 리프레시 시 초기화
+  // - 사용 이유: 성능 최적화, 브라우저 리프레시 시 초기화, 이미지 포함
   const highlightedHTML = React.useMemo(() => {
-    const sanitized = DOMPurify.sanitize(markdown, {
-      ALLOWED_TAGS: [
-        'p',
-        'h1',
-        'h2',
-        'h3',
-        'li',
-        'img',
-        'ul',
-        'ol',
-        'strong',
-        'em',
-        'mark',
-        'br',
-        'div',
-        'span',
-      ],
-      ALLOWED_ATTR: ['style'],
-    });
-    return highlightSearchTerm(sanitized, searchTerm);
+    // ReactQuill HTML을 직접 사용 (이미지 태그 포함)
+    // - 의미: 편집기에서 생성된 모든 리치텍스트 요소 유지
+    // - 사용 이유: 이미지, 스타일, 포맷팅 완전 지원
+    const processedHTML = highlightSearchTerm(markdown, searchTerm);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('MarkdownPreview: Processed HTML', {
+        originalMarkdownLength: markdown.length,
+        processedHTMLLength: processedHTML.length,
+        hasImages: processedHTML.includes('<img'),
+        imageCount: (processedHTML.match(/<img/g) || []).length,
+      });
+    }
+
+    return processedHTML;
   }, [markdown, searchTerm]);
+
+  // 효과: 이미지 에러 핸들링 설정 및 보안 검증
+  // - 의미: 미리보기 영역의 모든 이미지에 에러 핸들러 추가 및 소스 검증
+  // - 사용 이유: 깨진 이미지 처리 및 보안 강화
+  useEffect(() => {
+    if (!previewRef.current) return;
+
+    const images = previewRef.current.querySelectorAll('img');
+    images.forEach((img) => {
+      // 이미지 소스 보안 검증
+      // - 의미: 안전하지 않은 이미지 소스 차단
+      // - 사용 이유: XSS 공격 방지
+      const imgSrc = img.getAttribute('src');
+      if (imgSrc && !isValidImageSource(imgSrc)) {
+        console.warn('MarkdownPreview: Blocked unsafe image source:', imgSrc);
+        img.src =
+          'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2ZmNjY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJsb2NrZWQgVW5zYWZlIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+        img.alt = '차단된 안전하지 않은 이미지';
+        return;
+      }
+
+      // 이미지 로드 에러 이벤트 리스너 추가
+      // - 의미: 각 이미지에 개별 에러 처리 적용
+      // - 사용 이유: 일부 이미지 실패가 전체에 영향을 주지 않도록
+      img.addEventListener('error', handleImageError);
+
+      // 이미지 스타일링 적용
+      // - 의미: 일관된 이미지 표시 스타일
+      // - 사용 이유: 사용자 경험 향상
+      img.style.maxWidth = '100%';
+      img.style.height = 'auto';
+      img.style.borderRadius = '4px';
+      img.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+    });
+
+    // 클린업: 이벤트 리스너 제거
+    // - 의미: 메모리 누수 방지
+    // - 사용 이유: 컴포넌트 언마운트 시 정리
+    return () => {
+      images.forEach((img) => {
+        img.removeEventListener('error', handleImageError);
+      });
+    };
+  }, [highlightedHTML]);
 
   // 효과: 검색어 매칭 (휘발성)
   // - 의미: 검색어에 해당하는 요소 찾기 (임시 상태)
@@ -243,10 +375,14 @@ function MarkdownPreview({
     ) => {
       if (
         _e.target instanceof HTMLElement &&
-        (_e.target.tagName === 'INPUT' || _e.target.tagName === 'BUTTON')
+        (_e.target.tagName === 'INPUT' ||
+          _e.target.tagName === 'BUTTON' ||
+          _e.target.tagName === 'IMG')
       ) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('MarkdownPreview: Ignored mouse down on input/button');
+          console.log(
+            'MarkdownPreview: Ignored mouse down on input/button/image'
+          );
         }
         return;
       }
@@ -294,7 +430,9 @@ function MarkdownPreview({
       let startNode: Node | null = range.startContainer || null;
       while (startNode && !startBlock) {
         if (startNode.nodeType === Node.ELEMENT_NODE) {
-          startBlock = (startNode as Element).closest('p,h1,h2,h3,li,ul,ol');
+          startBlock = (startNode as Element).closest(
+            'p,h1,h2,h3,li,ul,ol,div'
+          );
         }
         startNode = startNode.parentNode;
       }
@@ -302,7 +440,7 @@ function MarkdownPreview({
       let endNode: Node | null = range.endContainer || null;
       while (endNode && !endBlock) {
         if (endNode.nodeType === Node.ELEMENT_NODE) {
-          endBlock = (endNode as Element).closest('p,h1,h2,h3,li,ul,ol');
+          endBlock = (endNode as Element).closest('p,h1,h2,h3,li,ul,ol,div');
         }
         endNode = endNode.parentNode;
       }
@@ -539,10 +677,23 @@ function MarkdownPreview({
           </span>
         </div>
       )}
+
+      {/* 미리보기 영역 - 이미지 완전 지원 */}
+      {/* - 의미: ReactQuill 리치텍스트의 모든 요소 렌더링 */}
+      {/* - 사용 이유: 이미지, 스타일, 포맷팅 완전 표시 */}
       <div
         ref={previewRef}
-        className="border rounded-md p-4 bg-gray-50 min-h-[300px] overflow-auto prose prose-sm max-w-none"
-        style={{ userSelect: 'text' }}
+        className="border rounded-md p-4 bg-white min-h-[300px] overflow-auto prose prose-sm max-w-none
+                   [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded [&_img]:shadow-sm
+                   [&_img]:border [&_img]:border-gray-200 [&_img]:mx-auto [&_img]:block
+                   [&_p]:mb-3 [&_h1]:mb-4 [&_h2]:mb-3 [&_h3]:mb-2
+                   [&_ul]:mb-3 [&_ol]:mb-3 [&_li]:mb-1
+                   [&_blockquote]:border-l-4 [&_blockquote]:border-blue-400 [&_blockquote]:pl-4 [&_blockquote]:italic"
+        style={{
+          userSelect: 'text',
+          // 이미지와 텍스트의 조화로운 배치
+          lineHeight: '1.6',
+        }}
         onMouseDown={!isMobile ? handleStart : undefined}
         onMouseUp={!isMobile ? handleEnd : undefined}
         onTouchStart={isMobile ? handleTouchStart : undefined}
@@ -551,6 +702,27 @@ function MarkdownPreview({
         dangerouslySetInnerHTML={{ __html: highlightedHTML || '' }}
         aria-live="polite" // 웹 접근성: 콘텐츠 변경 알림
       />
+
+      {/* 이미지 통계 정보 (개발 환경에서만) */}
+      {process.env.NODE_ENV === 'development' &&
+        highlightedHTML.includes('<img') && (
+          <div className="p-2 mt-2 border border-blue-200 rounded bg-blue-50">
+            <p className="text-xs text-blue-700">
+              🖼️ 이미지 {(highlightedHTML.match(/<img/g) || []).length}개가
+              포함되어 있습니다.
+            </p>
+          </div>
+        )}
+
+      {/* 보안 경고 (개발 환경에서만) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="p-2 mt-2 border border-green-200 rounded bg-green-50">
+          <p className="text-xs text-green-700">
+            🔒 DOMPurify로 보안 처리된 HTML이 렌더링되고 있습니다.
+          </p>
+        </div>
+      )}
+
       {isMobile && selectedMobileText && (
         <div className="mt-2">
           <Button

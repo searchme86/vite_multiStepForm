@@ -13,7 +13,7 @@
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import ReactQuill from 'react-quill';
-import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import { useStepFieldsStateStore } from '../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 // CSS 스타일시트를 조건부로 import
 // - 의미: ReactQuill 테마 스타일 적용
 // - 사용 이유: 편집기 UI 스타일링
@@ -28,9 +28,9 @@ try {
   console.warn('ReactQuill CSS not found, using default styles');
 }
 
-import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
+import type { blogPostSchemaType } from '../../pages/write/schema/blogPostSchema';
 import debounce from 'lodash/debounce';
-import { Button } from './ui/button';
+import { Button } from '../../components/ui/button';
 
 // 타입: 오류 메시지
 // - 의미: 오류 유형과 메시지 정의
