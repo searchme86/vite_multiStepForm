@@ -245,9 +245,28 @@ function PreviewSection() {
 
           {/* 리치텍스트 콘텐츠 - 3단계 목표 모두 구현 */}
           <div>
+            <h3 className="text-lg font-medium">
+              리치텍스트 콘텐츠
+              {processedContent.hasRichContent && (
+                <span className="ml-2 text-sm text-blue-600">
+                  (스타일링 적용됨)
+                </span>
+              )}
+            </h3>
+
             {/* 목표 1: Zustand에서 데이터 가져오기 ✅ */}
             {/* 목표 2: HTML 태그 제거한 일반 텍스트 표시 ✅ */}
             <div className="space-y-4">
+              {/* 일반 텍스트 미리보기 */}
+              <div>
+                <h4 className="mb-2 text-sm font-medium text-gray-600">
+                  텍스트 미리보기
+                </h4>
+                <p className="p-3 text-gray-800 border rounded bg-gray-50">
+                  {processedContent.preview}
+                </p>
+              </div>
+
               {/* 목표 3: 스타일링된 리치텍스트 표시 ✅ */}
               {processedContent.hasRichContent && (
                 <div>
@@ -269,6 +288,16 @@ function PreviewSection() {
               )}
             </div>
           </div>
+
+          {/* 마크다운 (기존 유지) */}
+          {markdown && (
+            <div>
+              <h3 className="text-lg font-medium">마크다운</h3>
+              <div className="p-3 prose-sm prose border rounded max-w-none bg-gray-50">
+                <pre className="text-sm whitespace-pre-wrap">{markdown}</pre>
+              </div>
+            </div>
+          )}
 
           {/* 카테고리 */}
           <div>
