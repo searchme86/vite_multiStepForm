@@ -63,6 +63,7 @@ function ContentSection() {
   const store = useStepFieldsStateStore();
   const setMarkdown = store.setMarkdown || (() => {}); // fallback 함수 제공 (세션별 초기화)
   const setSearchTerm = store.setSearchTerm || (() => {}); // fallback 함수 제공 (세션별 초기화)
+  const setRichTextContent = store.setRichTextContent || (() => {});
 
   // 상태: 선택된 블록 텍스트, 오프셋, 길이, 텍스트
   // - 의미: 마크다운 편집 및 미리보기 연동
@@ -130,6 +131,7 @@ function ContentSection() {
               onOpenPreview={() => setIsPreviewOpen(true)}
               setValue={setValue}
               setMarkdown={setMarkdown}
+              setRichTextContent={setRichTextContent}
             />
             {!isMobile && (
               <MarkdownPreview

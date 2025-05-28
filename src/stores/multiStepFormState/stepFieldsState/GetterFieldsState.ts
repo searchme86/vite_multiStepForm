@@ -18,9 +18,10 @@ export const createGetterFieldsState = (): GetterFieldsState => {
   keys.forEach(<K extends keyof blogPostSchemaType>(key: K) => {
     const methodName = `get${capitalize(key as string)}` as GetterMethodName<K>;
 
-    (getter as any)[methodName] = function (this: StepFieldsStateStore) {
-      return this.state[key];
-    };
+    (getter as Record<string, () => blogPostSchemaType[K]>)[methodName] =
+      function (this: StepFieldsStateStore) {
+        return this.state[key];
+      };
   });
 
   return getter as GetterFieldsState;

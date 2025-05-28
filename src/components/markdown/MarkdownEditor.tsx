@@ -69,8 +69,6 @@ function MarkdownEditor({
 }: MarkdownEditorProps) {
   const zustandStore = useStepFieldsStateStore();
 
-  console.log('zustandStore', zustandStore);
-
   const quillRef = useRef<ReactQuill>(null);
   const isUserTyping = useRef(false);
   const highlightedRangeRef = useRef<{ index: number; length: number } | null>(
@@ -78,13 +76,17 @@ function MarkdownEditor({
   );
   const [editorValue, setEditorValue] = React.useState('');
 
+  console.log('editorValue', editorValue);
   useEffect(() => {
     const storedMarkdown =
-      zustandStore.getMarkdown?.() || zustandStore.state?.markdown;
+      zustandStore.getMarkdown?.() ||
+      zustandStore.state?.markdown ||
+      editorValue;
     console.log('storedMarkdown', storedMarkdown);
     const storedRichText =
       zustandStore.getRichTextContent?.() ||
-      zustandStore.state?.richTextContent;
+      zustandStore.state?.richTextContent ||
+      editorValue;
     console.log('storedRichText', storedRichText);
     if (storedMarkdown) {
       setEditorValue(storedMarkdown);
