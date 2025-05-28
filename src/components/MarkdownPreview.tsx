@@ -1,14 +1,14 @@
 //====여기부터 수정됨====
 // MarkdownPreview.tsx: 블로그 포스트 마크다운 미리보기 섹션
-// - 의미: 마크다운 콘텐츠 미리보기 및 검색어 하이라이트 제공
-// - 사용 이유: 작성 콘텐츠 검토, Zustand로 상태 지속성 보장
-// - 비유: 작성된 원고를 인쇄하여 검토하는 과정
+// - 의미: 마크다운 콘텐츠 미리보기 및 검색어 하이라이트 제공 (휘발성 상태)
+// - 사용 이유: 작성 콘텐츠 검토, 브라우저 리프레시 시 초기화되는 임시 상태
+// - 비유: 작성된 원고를 임시로 인쇄하여 검토하는 과정 (저장되지 않음)
 // - 작동 메커니즘:
-//   1. watch로 마크다운과 검색어 데이터 접근
-//   2. control로 검색어 입력 관리
-//   3. setValue로 폼 업데이트, setSearchTerm으로 Zustand 동기화
-//   4. ReactMarkdown으로 마크다운 렌더링, 검색어 하이라이트
-// - 관련 키워드: react-hook-form, zustand, react-markdown, tailwindcss, flexbox
+//   1. watch로 마크다운과 검색어 데이터 접근 (임시 상태만)
+//   2. control로 검색어 입력 관리 (세션별 초기화)
+//   3. setValue로 폼 업데이트, setSearchTerm으로 임시 상태만 동기화
+//   4. ReactMarkdown으로 마크다운 렌더링, 검색어 하이라이트 (휘발성)
+// - 관련 키워드: react-hook-form, 휘발성 상태, react-markdown, tailwindcss, flexbox
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Controller } from 'react-hook-form';
@@ -26,8 +26,8 @@ type ErrorMessage = {
 };
 
 // 인터페이스: 컴포넌트 props
-// - 의미: 미리보기 설정 및 콜백 전달
-// - 사용 이유: 마크다운 미리보기와 편집기 연동
+// - 의미: 미리보기 설정 및 콜백 전달 (휘발성 상태 전용)
+// - 사용 이유: 마크다운 미리보기와 편집기 연동, 임시 상태만 사용
 interface MarkdownPreviewProps {
   setSelectedBlockText: (blockText: string | null) => void;
   setSelectedOffset: (offset: number | null) => void;
@@ -37,14 +37,14 @@ interface MarkdownPreviewProps {
   isMobile?: boolean;
   onClose?: () => void;
   setValue: (name: keyof blogPostSchemaType, value: any, options?: any) => void;
-  setSearchTerm: (value: string) => void;
+  setSearchTerm: (value: string) => void; // 휘발성 검색어 상태만 업데이트
   control: any;
   watch: any;
 }
 
 // 함수: 검색어 하이라이트
-// - 의미: 마크다운 HTML에서 검색어 강조
-// - 사용 이루: 사용자 검색어 시각화
+// - 의미: 마크다운 HTML에서 검색어 강조 (임시 하이라이트)
+// - 사용 이유: 사용자 검색어 시각화 (세션별 초기화)
 const highlightSearchTerm = (html: string, searchTerm: string): string => {
   if (!searchTerm.trim()) return html;
   const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -85,14 +85,14 @@ const highlightSearchTerm = (html: string, searchTerm: string): string => {
     ALLOWED_ATTR: ['style'],
   });
   if (process.env.NODE_ENV === 'development') {
-    console.log('MarkdownPreview: Highlighted HTML', sanitized);
+    console.log('MarkdownPreview: Highlighted HTML (volatile)', sanitized);
   }
   return sanitized;
 };
 
 // MarkdownPreview: 마크다운 미리보기 UI
-// - 의미: 마크다운 콘텐츠와 검색어 하이라이트 표시
-// - 사용 이유: 콘텐츠 검토, Zustand 동기화
+// - 의미: 마크다운 콘텐츠와 검색어 하이라이트 표시 (휘발성 상태)
+// - 사용 이유: 콘텐츠 검토, 브라우저 리프레시 시 초기화
 function MarkdownPreview({
   setSelectedBlockText,
   setSelectedOffset,
@@ -102,48 +102,52 @@ function MarkdownPreview({
   isMobile = false,
   onClose,
   setValue,
-  setSearchTerm,
+  setSearchTerm, // 휘발성 검색어만 업데이트
   control,
   watch,
 }: MarkdownPreviewProps) {
   // 개발 환경 로그
-  // - 의미: 렌더링 확인
+  // - 의미: 렌더링 확인 (휘발성 상태 모드)
   // - 사용 이유: 디버깅
   if (process.env.NODE_ENV === 'development') {
-    console.log('MarkdownPreview: Rendering');
+    console.log('MarkdownPreview: Rendering with volatile state only');
   }
 
-  // 폼 데이터
-  // - 의미: 마크다운과 검색어 값 추적
-  // - 사용 이유: 미리보기 렌더링
+  // 폼 데이터 (휘발성 상태만 사용)
+  // - 의미: 마크다운과 검색어 값 추적 (임시 상태)
+  // - 사용 이유: 미리보기 렌더링, 브라우저 리프레시 시 초기화
   const markdown = watch('markdown') || '';
   const searchTerm = watch('searchTerm') || '';
 
   if (process.env.NODE_ENV === 'development') {
-    console.log('MarkdownPreview: Watched markdown', markdown);
+    console.log('MarkdownPreview: Watched volatile markdown', {
+      markdownLength: markdown.length,
+      searchTermLength: searchTerm.length,
+      note: 'These values will be cleared on browser refresh',
+    });
   }
 
-  // 상태: 검색어 매칭
-  // - 의미: 하이라이트된 검색어 목록
+  // 상태: 검색어 매칭 (세션별 초기화)
+  // - 의미: 하이라이트된 검색어 목록 (휘발성)
   const [matches, setMatches] = useState<Element[]>([]);
-  // 상태: 현재 매칭 인덱스
-  // - 의미: 활성 검색어 위치
+  // 상태: 현재 매칭 인덱스 (세션별 초기화)
+  // - 의미: 활성 검색어 위치 (휘발성)
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
-  // 상태: 모바일 선택 텍스트
-  // - 의미: 모바일 터치로 선택된 텍스트
+  // 상태: 모바일 선택 텍스트 (세션별 초기화)
+  // - 의미: 모바일 터치로 선택된 텍스트 (휘발성)
   const [selectedMobileText, setSelectedMobileText] = useState<string | null>(
     null
   );
   // 참조: 미리보기 요소
   // - 의미: DOM 조작
   const previewRef = useRef<HTMLDivElement>(null);
-  // 상태: 선택 중 여부
-  // - 의미: 텍스트 선택 추적
+  // 상태: 선택 중 여부 (세션별 초기화)
+  // - 의미: 텍스트 선택 추적 (휘발성)
   const isSelecting = useRef(false);
 
-  // 메모이제이션: 하이라이트된 HTML
-  // - 의미: 마크다운과 검색어로 HTML 생성
-  // - 사용 이유: 성능 최적화
+  // 메모이제이션: 하이라이트된 HTML (휘발성)
+  // - 의미: 마크다운과 검색어로 HTML 생성 (임시 상태)
+  // - 사용 이유: 성능 최적화, 브라우저 리프레시 시 초기화
   const highlightedHTML = React.useMemo(() => {
     const sanitized = DOMPurify.sanitize(markdown, {
       ALLOWED_TAGS: [
@@ -167,9 +171,9 @@ function MarkdownPreview({
     return highlightSearchTerm(sanitized, searchTerm);
   }, [markdown, searchTerm]);
 
-  // 효과: 검색어 매칭
-  // - 의미: 검색어에 해당하는 요소 찾기
-  // - 사용 이유: 하이라이트 및 네비게이션
+  // 효과: 검색어 매칭 (휘발성)
+  // - 의미: 검색어에 해당하는 요소 찾기 (임시 상태)
+  // - 사용 이유: 하이라이트 및 네비게이션, 세션별 초기화
   useEffect(() => {
     if (!previewRef.current) return;
     const elements = Array.from(previewRef.current.querySelectorAll('mark'));
@@ -177,16 +181,16 @@ function MarkdownPreview({
     setCurrentMatchIndex(elements.length > 0 ? 0 : -1);
     if (process.env.NODE_ENV === 'development') {
       console.log(
-        'MarkdownPreview: Search matches',
+        'MarkdownPreview: Search matches (volatile)',
         elements.length,
         elements.map((el) => el.outerHTML)
       );
     }
   }, [highlightedHTML]);
 
-  // 효과: 매칭 하이라이트 및 스크롤
-  // - 의미: 현재 매칭된 검색어 강조 및 표시
-  // - 사용 이유: 사용자 피드백
+  // 효과: 매칭 하이라이트 및 스크롤 (휘발성)
+  // - 의미: 현재 매칭된 검색어 강조 및 표시 (임시 상태)
+  // - 사용 이유: 사용자 피드백, 세션별 초기화
   useEffect(() => {
     if (!matches.length || currentMatchIndex === -1) return;
     const current = matches[currentMatchIndex];
@@ -201,7 +205,7 @@ function MarkdownPreview({
     });
     if (process.env.NODE_ENV === 'development') {
       console.log(
-        'MarkdownPreview: Highlighted and scrolled to match',
+        'MarkdownPreview: Highlighted and scrolled to match (volatile)',
         currentMatchIndex + 1
       );
     }
@@ -230,9 +234,9 @@ function MarkdownPreview({
     return -1;
   };
 
-  // 핸들러: 선택 시작
-  // - 의미: 텍스트 선택 시작 처리
-  // - 사용 이유: 사용자 선택 추적
+  // 핸들러: 선택 시작 (휘발성)
+  // - 의미: 텍스트 선택 시작 처리 (임시 상태)
+  // - 사용 이유: 사용자 선택 추적, 세션별 초기화
   const handleStart = useCallback(
     (
       _e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
@@ -252,9 +256,9 @@ function MarkdownPreview({
     [setErrorMessage]
   );
 
-  // 핸들러: 선택 종료
-  // - 의미: 텍스트 선택 완료 처리
-  // - 사용 이유: 선택된 텍스트 정보 저장
+  // 핸들러: 선택 종료 (휘발성)
+  // - 의미: 텍스트 선택 완료 처리 (임시 상태)
+  // - 사용 이유: 선택된 텍스트 정보 저장, 세션별 초기화
   const handleEnd = useCallback(
     (
       _e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
@@ -379,9 +383,9 @@ function MarkdownPreview({
     ]
   );
 
-  // 핸들러: 터치 시작
-  // - 의미: 모바일 터치 이벤트 시작
-  // - 사용 이유: 모바일 텍스트 선택
+  // 핸들러: 터치 시작 (휘발성)
+  // - 의미: 모바일 터치 이벤트 시작 (임시 상태)
+  // - 사용 이유: 모바일 텍스트 선택, 세션별 초기화
   const handleTouchStart = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       const touch = e.touches[0];
@@ -394,9 +398,9 @@ function MarkdownPreview({
     []
   );
 
-  // 핸들러: 터치 이동
-  // - 의미: 모바일 터치 이동 추적
-  // - 사용 이유: 텍스트 선택 범위 확인
+  // 핸들러: 터치 이동 (휘발성)
+  // - 의미: 모바일 터치 이동 추적 (임시 상태)
+  // - 사용 이유: 텍스트 선택 범위 확인, 세션별 초기화
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
     console.log('Touch Move:', {
@@ -406,9 +410,9 @@ function MarkdownPreview({
     });
   }, []);
 
-  // 핸들러: 터치 종료
-  // - 의미: 모바일 텍스트 선택 완료
-  // - 사용 이유: 선택된 텍스트 저장
+  // 핸들러: 터치 종료 (휘발성)
+  // - 의미: 모바일 텍스트 선택 완료 (임시 상태)
+  // - 사용 이유: 선택된 텍스트 저장, 세션별 초기화
   const handleTouchEnd = useCallback((_e: React.TouchEvent<HTMLDivElement>) => {
     console.log('Touch End Detected');
     setTimeout(() => {
@@ -430,9 +434,9 @@ function MarkdownPreview({
     }, 100);
   }, []);
 
-  // 효과: 모바일 터치 이벤트 리스너
-  // - 의미: 터치 이벤트 등록
-  // - 사용 이유: 모바일 텍스트 선택 지원
+  // 효과: 모바일 터치 이벤트 리스너 (휘발성)
+  // - 의미: 터치 이벤트 등록 (임시 상태)
+  // - 사용 이유: 모바일 텍스트 선택 지원, 세션별 초기화
   useEffect(() => {
     if (isMobile) {
       document.addEventListener('touchend', handleTouchEnd as any);
@@ -442,9 +446,9 @@ function MarkdownPreview({
     }
   }, [isMobile, handleTouchEnd]);
 
-  // 핸들러: 텍스트 삽입
-  // - 의미: 모바일 선택 텍스트를 편집기에 삽입
-  // - 사용 이유: 편집기와 미리보기 연동
+  // 핸들러: 텍스트 삽입 (휘발성)
+  // - 의미: 모바일 선택 텍스트를 편집기에 삽입 (임시 상태)
+  // - 사용 이유: 편집기와 미리보기 연동, 세션별 초기화
   const handleInsertText = () => {
     if (selectedMobileText) {
       setSelectedText(selectedMobileText);
@@ -455,9 +459,9 @@ function MarkdownPreview({
     }
   };
 
-  // 핸들러: 키보드 이벤트
-  // - 의미: 검색어 네비게이션
-  // - 사용 이유: 사용자 편의성
+  // 핸들러: 키보드 이벤트 (휘발성)
+  // - 의미: 검색어 네비게이션 (임시 상태)
+  // - 사용 이유: 사용자 편의성, 세션별 초기화
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (matches.length <= 1) return;
@@ -473,9 +477,9 @@ function MarkdownPreview({
   );
 
   return (
-    // 컨테이너: 미리보기 레이아웃
-    // - 의미: 마크다운과 검색어 입력 UI 배치
-    // - 사용 이유: 사용자 친화적 인터페이스
+    // 컨테이너: 미리보기 레이아웃 (휘발성)
+    // - 의미: 마크다운과 검색어 입력 UI 배치 (임시 상태)
+    // - 사용 이유: 사용자 친화적 인터페이스, 브라우저 리프레시 시 초기화
     <div
       className="flex-1"
       style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
@@ -495,7 +499,10 @@ function MarkdownPreview({
               const value = e.target.value;
               field.onChange(value);
               setValue('searchTerm', value, { shouldValidate: true });
-              setSearchTerm(value); // Zustand 동기화
+              // 휘발성 검색어만 업데이트 (Zustand 저장 안함)
+              // - 의미: 임시 검색어 상태만 동기화
+              // - 사용 이유: 브라우저 리프레시 시 검색어 초기화
+              setSearchTerm(value);
             }}
             onKeyDown={handleKeyDown}
             className="mb-2"

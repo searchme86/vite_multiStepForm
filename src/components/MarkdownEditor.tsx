@@ -1,13 +1,14 @@
 //====여기부터 수정됨====
 // MarkdownEditor.tsx: 블로그 포스트 마크다운 입력 편집기
-// - 의미: 마크다운 형식의 본문 입력 UI 제공
-// - 사용 이유: 콘텐츠 작성 및 편집, Zustand로 상태 지속성 보장
-// - 비유: 블로그 본문을 작성하는 타자기
+// - 의미: 마크다운 형식의 본문 입력 UI 제공, 리치텍스트는 Zustand 저장
+// - 사용 이유: 콘텐츠 작성 및 편집, 멀티스텝폼에서 데이터 접근을 위해 Zustand 저장
+// - 비유: 블로그 본문을 작성하는 타자기이면서 동시에 자동 저장 기능 제공
 // - 작동 메커니즘:
 //   1. watch와 setValue로 폼 상태 관리
 //   2. ReactQuill로 마크다운 입력 처리
-//   3. setValue로 폼 업데이트, setMarkdown으로 Zustand 동기화
+//   3. setValue로 폼 업데이트, setMarkdown으로 Zustand에 리치텍스트 저장
 //   4. 선택된 텍스트 하이라이트 및 오류 처리
+//   5. 미리보기용 임시 상태와 영구 저장용 리치텍스트 구분
 // - 관련 키워드: react-hook-form, zustand, react-quill, tailwindcss, flexbox
 
 import React, { useEffect, useRef, useCallback } from 'react';
@@ -40,7 +41,7 @@ type ErrorMessage = {
 
 // 인터페이스: 컴포넌트 props
 // - 의미: 편집기 설정 및 콜백 전달
-// - 사용 이유: 마크다운 편집과 미리보기 연동
+// - 사용 이유: 마크다운 편집과 미리보기 연동, Zustand 리치텍스트 저장
 interface MarkdownEditorProps {
   selectedBlockText: string | null;
   selectedOffset: number | null;
@@ -50,7 +51,8 @@ interface MarkdownEditorProps {
   isMobile: boolean;
   onOpenPreview: () => void;
   setValue: (name: keyof blogPostSchemaType, value: any, options?: any) => void;
-  setMarkdown: (value: string) => void;
+  setMarkdown: (value: string) => void; // 미리보기용 임시 상태
+  setContent: (value: string) => void; // Zustand 영구 저장용 리치텍스트
 }
 
 // 툴바 및 포맷 설정
@@ -82,8 +84,8 @@ const formats = [
 ];
 
 // MarkdownEditor: 마크다운 입력 편집기
-// - 의미: 마크다운 본문 입력 및 편집
-// - 사용 이유: 콘텐츠 작성, Zustand 동기화
+// - 의미: 마크다운 본문 입력 및 편집, 이중 저장 시스템
+// - 사용 이유: 콘텐츠 작성, 미리보기용 임시 상태와 멀티스텝폼용 영구 저장 분리
 function MarkdownEditor({
   selectedBlockText,
   selectedOffset,
@@ -93,13 +95,14 @@ function MarkdownEditor({
   isMobile,
   onOpenPreview,
   setValue,
-  setMarkdown,
+  setMarkdown, // 미리보기용 임시 상태 - 브라우저 리프레시 시 휘발
+  setContent, // Zustand 영구 저장용 - 멀티스텝폼에서 사용
 }: MarkdownEditorProps) {
   // 개발 환경 로그
   // - 의미: 렌더링 확인
-  // - 사용 이루: 디버깅
+  // - 사용 이유: 디버깅
   if (process.env.NODE_ENV === 'development') {
-    console.log('MarkdownEditor: Rendering');
+    console.log('MarkdownEditor: Rendering with dual storage system');
   }
 
   // 참조: ReactQuill 인스턴스
@@ -118,18 +121,35 @@ function MarkdownEditor({
   // - 사용 이유: ReactQuill value prop 최적화
   const [editorValue, setEditorValue] = React.useState('');
 
-  // 디바운스된 setValue 및 setMarkdown
-  // - 의미: 입력 지연 처리
-  // - 사용 이유: 성능 최적화 및 무한 렌더링 방지
+  // 디바운스된 setValue, setMarkdown, setContent
+  // - 의미: 입력 지연 처리로 이중 저장 시스템 구현
+  // - 사용 이유: 성능 최적화 및 무한 렌더링 방지, 미리보기와 영구 저장 분리
   const debouncedSetValue = useCallback(
     debounce((value: string) => {
+      // 1. 폼 상태 업데이트 (react-hook-form)
+      // - 의미: 폼 유효성 검사 및 즉시 상태 반영
+      // - 사용 이유: 실시간 폼 검증
       setValue('markdown', value, { shouldValidate: true });
-      setMarkdown(value); // Zustand 동기화
+
+      // 2. 미리보기용 임시 상태 업데이트 (휘발성)
+      // - 의미: 브라우저 리프레시 시 사라지는 미리보기 데이터
+      // - 사용 이유: 미리보기는 매번 새로 시작해야 함
+      setMarkdown(value);
+
+      // 3. Zustand 영구 저장용 리치텍스트 업데이트 (지속성)
+      // - 의미: localStorage에 저장되어 멀티스텝폼에서 접근 가능
+      // - 사용 이유: 작성한 콘텐츠를 나중에 다른 단계에서 사용
+      setContent(value);
+
       if (process.env.NODE_ENV === 'development') {
-        console.log('MarkdownEditor: Debounced form field value', value);
+        console.log('MarkdownEditor: Dual storage updated', {
+          tempMarkdown: 'Updated (volatile)',
+          persistentContent: 'Updated (persistent)',
+          valueLength: value.length,
+        });
       }
     }, 300),
-    [setValue, setMarkdown]
+    [setValue, setMarkdown, setContent] // setContent 의존성 추가
   );
 
   // 함수: 텍스트 정규화
@@ -274,9 +294,9 @@ function MarkdownEditor({
   ]);
 
   // 핸들러: 텍스트 변경
-  // - 의미: 사용자 입력 처리
-  // - 사용 이유: 마크다운 입력 동기화
-  // - 작동 매커니즘: 입력값 디바운스로 폼과 Zustand 업데이트
+  // - 의미: 사용자 입력 처리, 이중 저장 시스템 적용
+  // - 사용 이유: 마크다운 입력 동기화, 미리보기와 영구 저장 분리
+  // - 작동 매커니즘: 입력값 디바운스로 폼, 미리보기, Zustand 업데이트
   const handleTextChange = (
     value: string,
     _delta: unknown,
@@ -300,7 +320,9 @@ function MarkdownEditor({
 
     isUserTyping.current = true;
     if (process.env.NODE_ENV === 'development') {
-      console.log('MarkdownEditor: Text changed by user');
+      console.log(
+        'MarkdownEditor: Text changed by user, initiating dual storage'
+      );
     }
 
     // 선택 영역 보존
@@ -314,7 +336,9 @@ function MarkdownEditor({
       }
     }
 
-    // 디바운스로 폼 업데이트
+    // 디바운스로 이중 저장 시스템 업데이트
+    // - 의미: 임시 미리보기와 영구 저장을 동시에 처리
+    // - 사용 이유: 성능 최적화와 데이터 분리
     debouncedSetValue(value);
 
     // 선택 영역 복원 (지연 실행)
@@ -339,7 +363,7 @@ function MarkdownEditor({
 
   return (
     // 컨테이너: 편집기 레이아웃
-    // - 의미: 마크다운 입력 UI 배치
+    // - 의미: 마크다운 입력 UI 배치, 이중 저장 시스템 지원
     // - 사용 이유: 사용자 친화적 인터페이스
     <div
       className="flex flex-col flex-1 gap-2"
