@@ -1,5 +1,5 @@
 //====여기부터 수정됨====
-// MarkdownEditor.tsx: 블로그 포스트 마크다운 입력 편집기
+// MarkdownEditor.tsx: 블로그 포스트 마크다운 입력 편집기 (변수명 충돌 해결)
 // - 의미: 마크다운 형식의 본문 입력 UI 제공, 리치텍스트는 Zustand 저장
 // - 사용 이유: 콘텐츠 작성 및 편집, 멀티스텝폼에서 데이터 접근을 위해 Zustand 저장
 // - 비유: 블로그 본문을 작성하는 타자기이면서 동시에 자동 저장 기능 제공
@@ -9,6 +9,7 @@
 //   3. setValue로 폼 업데이트, setMarkdown으로 Zustand에 리치텍스트 저장
 //   4. 선택된 텍스트 하이라이트 및 오류 처리
 //   5. 미리보기용 임시 상태와 영구 저장용 리치텍스트 구분
+//   6. richTextContent 변수명으로 기존 content와 충돌 방지
 // - 관련 키워드: react-hook-form, zustand, react-quill, tailwindcss, flexbox
 
 import React, { useEffect, useRef, useCallback } from 'react';
@@ -43,7 +44,7 @@ type ErrorMessage = {
 // 인터페이스: 컴포넌트 props
 // - 의미: 편집기 설정 및 콜백 전달
 // - 사용 이유: 마크다운 편집과 미리보기 연동, Zustand 리치텍스트 저장
-// - 수정: setContent를 선택적 prop으로 변경
+// - 수정: setRichTextContent로 변수명 변경
 interface MarkdownEditorProps {
   selectedBlockText: string | null;
   selectedOffset: number | null;
@@ -54,7 +55,7 @@ interface MarkdownEditorProps {
   onOpenPreview: () => void;
   setValue: (name: keyof blogPostSchemaType, value: any, options?: any) => void;
   setMarkdown: (value: string) => void; // 미리보기용 임시 상태
-  setContent?: (value: string) => void; // Zustand 영구 저장용 리치텍스트 (선택적)
+  setRichTextContent?: (value: string) => void; // Zustand 영구 저장용 리치텍스트 (변수명 변경)
 }
 
 // 툴바 및 포맷 설정
@@ -85,7 +86,7 @@ const formats = [
   'background',
 ];
 
-// MarkdownEditor: 마크다운 입력 편집기
+// MarkdownEditor: 마크다운 입력 편집기 (변수명 충돌 해결)
 // - 의미: 마크다운 본문 입력 및 편집, 이중 저장 시스템
 // - 사용 이유: 콘텐츠 작성, 미리보기용 임시 상태와 멀티스텝폼용 영구 저장 분리
 function MarkdownEditor({
@@ -98,20 +99,23 @@ function MarkdownEditor({
   onOpenPreview,
   setValue,
   setMarkdown, // 미리보기용 임시 상태 - 브라우저 리프레시 시 휘발
-  setContent, // Zustand 영구 저장용 - 멀티스텝폼에서 사용 (선택적)
+  setRichTextContent, // Zustand 영구 저장용 - 멀티스텝폼에서 사용 (변수명 변경)
 }: MarkdownEditorProps) {
   // 개발 환경 로그
   // - 의미: 렌더링 확인
   // - 사용 이유: 디버깅
   if (process.env.NODE_ENV === 'development') {
-    console.log('MarkdownEditor: Rendering with dual storage system', {
-      hasSetContent: !!setContent,
-      hasSetMarkdown: !!setMarkdown,
-    });
+    console.log(
+      'MarkdownEditor: Rendering with dual storage system (richTextContent)',
+      {
+        hasSetRichTextContent: !!setRichTextContent,
+        hasSetMarkdown: !!setMarkdown,
+      }
+    );
   }
 
   // Zustand 스토어 직접 접근
-  // - 의미: setContent prop이 없을 때 직접 스토어 사용
+  // - 의미: setRichTextContent prop이 없을 때 직접 스토어 사용
   // - 사용 이유: props 의존성 제거 및 안정성 향상
   const zustandStore = useStepFieldsStateStore();
 
@@ -131,37 +135,44 @@ function MarkdownEditor({
   // - 사용 이유: ReactQuill value prop 최적화
   const [editorValue, setEditorValue] = React.useState('');
 
-  // 안전한 Zustand 콘텐츠 저장 함수
-  // - 의미: setContent 메서드 안전 호출
+  // 안전한 Zustand 리치텍스트 저장 함수 (변수명 변경)
+  // - 의미: setRichTextContent 메서드 안전 호출
   // - 사용 이유: TypeScript 에러 방지 및 런타임 안정성
-  const safeSetContent = useCallback(
+  const safeSetRichTextContent = useCallback(
     (value: string) => {
       try {
-        // 1. prop으로 전달된 setContent 함수 사용
-        if (setContent && typeof setContent === 'function') {
-          setContent(value);
-          if (process.env.NODE_ENV === 'development') {
-            console.log('MarkdownEditor: Content saved via prop setContent');
-          }
-          return;
-        }
-
-        // 2. Zustand 스토어 직접 접근
-        if (zustandStore && typeof zustandStore.setContent === 'function') {
-          zustandStore.setContent(value);
-          if (process.env.NODE_ENV === 'development') {
-            console.log('MarkdownEditor: Content saved via Zustand store');
-          }
-          return;
-        }
-
-        // 3. 직접 상태 업데이트 (fallback)
-        if (zustandStore && zustandStore.state) {
-          // 이 방법은 권장하지 않지만 마지막 수단으로 사용
-          zustandStore.state.content = value;
+        // 1. prop으로 전달된 setRichTextContent 함수 사용
+        if (setRichTextContent && typeof setRichTextContent === 'function') {
+          setRichTextContent(value);
           if (process.env.NODE_ENV === 'development') {
             console.log(
-              'MarkdownEditor: Content saved via direct state update (fallback)'
+              'MarkdownEditor: RichTextContent saved via prop setRichTextContent'
+            );
+          }
+          return;
+        }
+
+        // 2. Zustand 스토어 직접 접근 (변수명 변경)
+        if (
+          zustandStore &&
+          typeof zustandStore.setRichTextContent === 'function'
+        ) {
+          zustandStore.setRichTextContent(value);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(
+              'MarkdownEditor: RichTextContent saved via Zustand store'
+            );
+          }
+          return;
+        }
+
+        // 3. 직접 상태 업데이트 (fallback) - 변수명 변경
+        if (zustandStore && zustandStore.state) {
+          // 이 방법은 권장하지 않지만 마지막 수단으로 사용
+          zustandStore.state.richTextContent = value;
+          if (process.env.NODE_ENV === 'development') {
+            console.log(
+              'MarkdownEditor: RichTextContent saved via direct state update (fallback)'
             );
           }
           return;
@@ -169,20 +180,20 @@ function MarkdownEditor({
 
         if (process.env.NODE_ENV === 'development') {
           console.warn(
-            'MarkdownEditor: No method available to save content to Zustand'
+            'MarkdownEditor: No method available to save richTextContent to Zustand'
           );
         }
       } catch (error) {
         console.error(
-          'MarkdownEditor: Error saving content to Zustand:',
+          'MarkdownEditor: Error saving richTextContent to Zustand:',
           error
         );
       }
     },
-    [setContent, zustandStore]
+    [setRichTextContent, zustandStore]
   );
 
-  // 디바운스된 setValue, setMarkdown, setContent
+  // 디바운스된 setValue, setMarkdown, setRichTextContent
   // - 의미: 입력 지연 처리로 이중 저장 시스템 구현
   // - 사용 이유: 성능 최적화 및 무한 렌더링 방지, 미리보기와 영구 저장 분리
   const debouncedSetValue = useCallback(
@@ -199,21 +210,21 @@ function MarkdownEditor({
         setMarkdown(value);
       }
 
-      // 3. Zustand 영구 저장용 리치텍스트 업데이트 (지속성)
+      // 3. Zustand 영구 저장용 리치텍스트 업데이트 (지속성) - 변수명 변경
       // - 의미: localStorage에 저장되어 멀티스텝폼에서 접근 가능
       // - 사용 이유: 작성한 콘텐츠를 나중에 다른 단계에서 사용
-      // - 수정: 안전한 함수 호출
-      safeSetContent(value);
+      // - 수정: 안전한 함수 호출, richTextContent 변수명 사용
+      safeSetRichTextContent(value);
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('MarkdownEditor: Dual storage updated', {
+        console.log('MarkdownEditor: Dual storage updated (richTextContent)', {
           tempMarkdown: 'Updated (volatile)',
-          persistentContent: 'Updated (persistent)',
+          persistentRichTextContent: 'Updated (persistent)',
           valueLength: value.length,
         });
       }
     }, 300),
-    [setValue, setMarkdown, safeSetContent] // safeSetContent 의존성 추가
+    [setValue, setMarkdown, safeSetRichTextContent] // safeSetRichTextContent 의존성 추가
   );
 
   // 함수: 텍스트 정규화
@@ -385,7 +396,7 @@ function MarkdownEditor({
     isUserTyping.current = true;
     if (process.env.NODE_ENV === 'development') {
       console.log(
-        'MarkdownEditor: Text changed by user, initiating dual storage'
+        'MarkdownEditor: Text changed by user, initiating dual storage (richTextContent)'
       );
     }
 

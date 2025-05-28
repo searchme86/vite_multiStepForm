@@ -1,5 +1,5 @@
 //====여기부터 수정됨====
-// PreviewSection.tsx: 블로그 포스트 작성 데이터 미리보기 섹션
+// PreviewSection.tsx: 블로그 포스트 작성 데이터 미리보기 섹션 (변수명 충돌 해결)
 // - 의미: 모든 탭의 입력 데이터를 렌더링 (Zustand 리치텍스트 포함)
 // - 사용 이유: 작성 내용 최종 확인, 게시 전 검토, 영구 저장된 콘텐츠 표시
 // - 비유: 책을 출판 전에 전체 내용을 훑어보는 것 (임시 초안이 아닌 완성본)
@@ -9,6 +9,7 @@
 //   3. HTML 태그 제거 함수로 일반 텍스트 변환
 //   4. ReactQuill readOnly 모드로 스타일링된 리치텍스트 표시
 //   5. flex 레이아웃으로 반응형 UI 구성
+//   6. richTextContent 변수명으로 기존 content와 충돌 방지
 // - 관련 키워드: react-hook-form, zustand, react-quill, html-to-text, tailwindcss, flexbox
 
 import { useMemo } from 'react';
@@ -94,7 +95,7 @@ const createTextPreview = (text: string, maxLength: number = 200): string => {
     : truncated + '...';
 };
 
-// PreviewSection: 미리보기 섹션
+// PreviewSection: 미리보기 섹션 (변수명 충돌 해결)
 // - 의미: 작성된 데이터 렌더링 (Zustand + 폼 데이터)
 // - 사용 이유: 최종 포스트 확인, 영구 저장된 리치텍스트 표시
 function PreviewSection() {
@@ -102,7 +103,9 @@ function PreviewSection() {
   // - 의미: 렌더링 확인
   // - 사용 이유: 디버깅
   if (process.env.NODE_ENV === 'development') {
-    console.log('PreviewSection: Rendering with Zustand integration');
+    console.log(
+      'PreviewSection: Rendering with Zustand integration (richTextContent)'
+    );
   }
 
   // FormProvider로부터 폼 메서드들을 가져옴
@@ -110,42 +113,55 @@ function PreviewSection() {
   // - 사용 이유: props drilling 없이 폼 상태에 접근
   const { watch } = useFormContext();
 
-  // Zustand 스토어에서 영구 저장된 리치텍스트 가져오기 (안전한 접근)
-  // - 의미: 마크다운 편집기에서 작성된 content 필드 접근
+  // Zustand 스토어에서 영구 저장된 리치텍스트 가져오기 (변수명 변경)
+  // - 의미: 마크다운 편집기에서 작성된 richTextContent 필드 접근
   // - 사용 이유: 멀티스텝폼에서 이전 단계 데이터 표시
-  // - 수정: TypeScript 에러 방지를 위한 안전한 접근
   const zustandStore = useStepFieldsStateStore();
   const savedRichText = useMemo(() => {
     try {
-      // getContent 메서드가 존재하는지 확인 후 호출
+      // getRichTextContent 메서드가 존재하는지 확인 후 호출 (변수명 변경)
       // - 의미: undefined 체크로 안전한 메서드 호출
       // - 사용 이유: TypeScript 에러 방지 및 런타임 안정성
-      if (zustandStore && typeof zustandStore.getContent === 'function') {
-        const content = zustandStore.getContent();
+      if (
+        zustandStore &&
+        typeof zustandStore.getRichTextContent === 'function'
+      ) {
+        const richTextContent = zustandStore.getRichTextContent();
         if (process.env.NODE_ENV === 'development') {
-          console.log('PreviewSection: Zustand content retrieved safely', {
-            contentLength: content?.length || 0,
-            contentType: typeof content,
-            hasContent: !!content,
-          });
+          console.log(
+            'PreviewSection: Zustand richTextContent retrieved safely',
+            {
+              contentLength: richTextContent?.length || 0,
+              contentType: typeof richTextContent,
+              hasContent: !!richTextContent,
+            }
+          );
         }
-        return content;
+        return richTextContent;
       }
 
-      // 메서드가 없는 경우 state에서 직접 접근 시도
+      // 메서드가 없는 경우 state에서 직접 접근 시도 (변수명 변경)
       // - 의미: fallback으로 직접 상태 접근
       // - 사용 이유: 메서드 생성 전에도 데이터 접근 가능
-      if (zustandStore && zustandStore.state && zustandStore.state.content) {
+      if (
+        zustandStore &&
+        zustandStore.state &&
+        zustandStore.state.richTextContent
+      ) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('PreviewSection: Fallback to direct state access');
+          console.log(
+            'PreviewSection: Fallback to direct richTextContent state access'
+          );
         }
-        return zustandStore.state.content;
+        return zustandStore.state.richTextContent;
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('PreviewSection: No Zustand content available', {
+        console.log('PreviewSection: No Zustand richTextContent available', {
           storeExists: !!zustandStore,
-          hasGetContent: !!(zustandStore && zustandStore.getContent),
+          hasGetRichTextContent: !!(
+            zustandStore && zustandStore.getRichTextContent
+          ),
           stateExists: !!(zustandStore && zustandStore.state),
         });
       }
@@ -155,63 +171,91 @@ function PreviewSection() {
       // Zustand 접근 에러 시 로그 출력
       // - 의미: 에러 발생 시 디버깅 정보 제공
       // - 사용 이유: 개발 중 문제 파악
-      console.error('PreviewSection: Error accessing Zustand store:', error);
+      console.error(
+        'PreviewSection: Error accessing Zustand store for richTextContent:',
+        error
+      );
       return null;
     }
   }, [zustandStore]);
 
-  // 값: 폼 데이터 - 타입 안전한 처리
+  // 값: 폼 데이터 - 타입 안전한 처리 (변수명 충돌 해결)
   // - 의미: 각 필드 값 추적
   // - 사용 이유: 미리보기 렌더링
   // - Fallback: 빈 문자열 또는 배열
-  // - 수정: savedRichText null 체크 추가
+  // - 수정: savedRichText와 기존 content 필드 분리
   const title = watch('title') || '제목 없음';
   const summary = watch('summary') || '요약 없음';
-  const content = watch('content') || savedRichText || '내용 없음'; // null 체크 포함
+  const basicContent = watch('content') || ''; // 기존 BlogContent 컴포넌트 텍스트
+  const richTextContent = savedRichText || ''; // 마크다운 편집기 리치텍스트
   const markdown = watch('markdown') || '';
   const category = watch('category') || '카테고리 없음';
   const tags: string[] = watch('tags') || [];
   const coverImage: ImageItem[] = watch('coverImage') || [];
 
-  // 메모이제이션: 리치텍스트 처리
-  // - 의미: 성능 최적화된 텍스트 변환
+  // 메모이제이션: 기본 콘텐츠 처리
+  // - 의미: 성능 최적화된 텍스트 변환 (기존 content 필드)
   // - 사용 이유: 불필요한 재계산 방지
-  const processedContent = useMemo(() => {
-    if (!content || content === '내용 없음') {
+  const processedBasicContent = useMemo(() => {
+    if (!basicContent || basicContent.trim() === '') {
       return {
-        plainText: '내용 없음',
-        preview: '내용 없음',
+        plainText: '',
+        preview: '',
+        hasContent: false,
+      };
+    }
+
+    const plainText = basicContent; // 기본 텍스트는 HTML 태그 없음
+    const preview = createTextPreview(basicContent);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('PreviewSection: Basic content processing', {
+        originalLength: basicContent.length,
+        plainTextLength: plainText.length,
+        previewLength: preview.length,
+      });
+    }
+
+    return { plainText, preview, hasContent: true };
+  }, [basicContent]);
+
+  // 메모이제이션: 리치텍스트 콘텐츠 처리 (변수명 변경)
+  // - 의미: 성능 최적화된 텍스트 변환 (마크다운 편집기)
+  // - 사용 이유: 불필요한 재계산 방지
+  const processedRichContent = useMemo(() => {
+    if (!richTextContent || richTextContent.trim() === '') {
+      return {
+        plainText: '',
+        preview: '',
         hasRichContent: false,
       };
     }
 
-    const plainText = stripHtmlTags(content);
-    const preview = createTextPreview(content);
-    const hasRichContent = content !== plainText; // HTML 태그 포함 여부 확인
+    const plainText = stripHtmlTags(richTextContent);
+    const preview = createTextPreview(richTextContent);
+    const hasRichContent = richTextContent !== plainText; // HTML 태그 포함 여부 확인
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('PreviewSection: Content processing', {
-        originalLength: content.length,
+      console.log('PreviewSection: Rich content processing', {
+        originalLength: richTextContent.length,
         plainTextLength: plainText.length,
         hasRichContent,
         previewLength: preview.length,
       });
     }
 
-    console.log('preview', preview);
-
     return { plainText, preview, hasRichContent };
-  }, [content]);
+  }, [richTextContent]);
 
   if (process.env.NODE_ENV === 'development') {
-    console.log('PreviewSection: Final content analysis', {
+    console.log('PreviewSection: Final content analysis (separated)', {
       savedRichTextLength: savedRichText?.length || 0,
-      finalContentLength: typeof content === 'string' ? content.length : 0,
-      contentSource: savedRichText ? 'Zustand' : 'Form',
-      contentPreview:
-        typeof content === 'string'
-          ? content.substring(0, 50) + '...'
-          : 'No content',
+      basicContentLength: basicContent.length,
+      richTextContentSource: savedRichText
+        ? 'Zustand (richTextContent)'
+        : 'None',
+      basicContentSource: basicContent ? 'Form (content)' : 'None',
+      note: 'Basic content and rich text content are now separate',
     });
   }
 
@@ -243,20 +287,50 @@ function PreviewSection() {
             <p className="text-gray-800">{summary}</p>
           </div>
 
-          {/* 리치텍스트 콘텐츠 - 3단계 목표 모두 구현 */}
-          <div>
-            {/* 목표 1: Zustand에서 데이터 가져오기 ✅ */}
-            {/* 목표 2: HTML 태그 제거한 일반 텍스트 표시 ✅ */}
-            <div className="space-y-4">
-              {/* 목표 3: 스타일링된 리치텍스트 표시 ✅ */}
-              {processedContent.hasRichContent && (
+          {/* 기본 콘텐츠 (BlogContent 컴포넌트) */}
+          {processedBasicContent.hasContent && (
+            <div>
+              <h3 className="text-lg font-medium">
+                기본 텍스트 콘텐츠
+                <span className="ml-2 text-sm text-gray-600">
+                  (단순 텍스트 입력)
+                </span>
+              </h3>
+              <div className="space-y-2">
+                <p className="p-3 text-gray-800 border rounded bg-gray-50">
+                  {processedBasicContent.preview}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* 리치텍스트 콘텐츠 - 마크다운 편집기 (변수명 변경) */}
+          {processedRichContent.hasRichContent && (
+            <div>
+              <h3 className="text-lg font-medium">
+                마크다운 편집기 콘텐츠
+                <span className="ml-2 text-sm text-blue-600">(리치텍스트)</span>
+              </h3>
+
+              <div className="space-y-4">
+                {/* 일반 텍스트 미리보기 */}
+                <div>
+                  <h4 className="mb-2 text-sm font-medium text-gray-600">
+                    텍스트 미리보기
+                  </h4>
+                  <p className="p-3 text-gray-800 border rounded bg-gray-50">
+                    {processedRichContent.preview}
+                  </p>
+                </div>
+
+                {/* 스타일링된 리치텍스트 표시 */}
                 <div>
                   <h4 className="mb-2 text-sm font-medium text-gray-600">
                     스타일링된 콘텐츠
                   </h4>
                   <div className="bg-white border rounded">
                     <ReactQuill
-                      value={content}
+                      value={richTextContent}
                       readOnly={true}
                       theme="snow"
                       modules={{
@@ -266,9 +340,19 @@ function PreviewSection() {
                     />
                   </div>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* 마크다운 (기존 유지) */}
+          {markdown && (
+            <div>
+              <h3 className="text-lg font-medium">마크다운</h3>
+              <div className="p-3 prose-sm prose border rounded max-w-none bg-gray-50">
+                <pre className="text-sm whitespace-pre-wrap">{markdown}</pre>
+              </div>
+            </div>
+          )}
 
           {/* 카테고리 */}
           <div>
@@ -331,31 +415,29 @@ function PreviewSection() {
           {process.env.NODE_ENV === 'development' && (
             <div className="p-4 mt-8 border border-yellow-200 rounded bg-yellow-50">
               <h3 className="mb-2 text-sm font-medium text-yellow-800">
-                개발자 정보
+                개발자 정보 (변수명 분리)
               </h3>
               <div className="space-y-1 text-xs text-yellow-700">
                 <p>
+                  • 기본 텍스트 소스:{' '}
+                  {processedBasicContent.hasContent ? 'Form (content)' : '없음'}
+                </p>
+                <p>
                   • 리치텍스트 소스:{' '}
-                  {savedRichText ? 'Zustand (영구 저장)' : 'Form (임시)'}
+                  {savedRichText ? 'Zustand (richTextContent)' : '없음'}
                 </p>
                 <p>
-                  • 원본 길이:{' '}
-                  {typeof content === 'string' ? content.length : 0}자
-                </p>
-                <p>• 일반 텍스트 길이: {processedContent.plainText.length}자</p>
-                <p>
-                  • 스타일링 포함:{' '}
-                  {processedContent.hasRichContent ? '예' : '아니오'}
+                  • 기본 텍스트 길이: {processedBasicContent.plainText.length}자
                 </p>
                 <p>
-                  • Zustand 스토어 상태: {zustandStore ? '연결됨' : '연결 안됨'}
+                  • 리치텍스트 길이: {processedRichContent.plainText.length}자
                 </p>
                 <p>
-                  • getContent 메서드:{' '}
-                  {zustandStore && zustandStore.getContent
-                    ? '사용 가능'
-                    : '사용 불가'}
+                  • 리치텍스트 스타일링:{' '}
+                  {processedRichContent.hasRichContent ? '포함' : '없음'}
                 </p>
+                <p>• Zustand 스토어: {zustandStore ? '연결됨' : '연결 안됨'}</p>
+                <p>• 변수명 충돌: 해결됨 (content ≠ richTextContent)</p>
               </div>
             </div>
           )}
