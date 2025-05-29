@@ -5,12 +5,9 @@ import type {
   StepFormState,
   EachStep,
 } from '../../components/multiStepForm/types/multiStepFormType.ts';
-// import type {
-//   StepFormState,
-//   EachStep,
-// } from '@/components/multiStepForm/types/multiStepFormType';
 import type { FormSchemaType } from '@/schema/FormSchema';
 import BasicInfoSection from '../../pages/write/basicFormSection/BasicInfoSection';
+import { initialFieldsState } from './stepFieldsState/initialFieldsState.ts';
 
 // 코드의 의미: 중첩 경로 유틸리티 타입
 // 왜 사용했는지: 폼 필드 경로를 타입 안전하게 생성
@@ -77,7 +74,8 @@ export const defaultFieldsValue: FormSchemaType = {
   github: '',
   portfolio: '',
   resume: [],
-  tocItems: [],
+  // tocItems: [],
+  ...initialFieldsState,
 };
 
 // 코드의 의미: 초기 상태 생성

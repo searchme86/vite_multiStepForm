@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import { CombinedSchema } from './CombinedSchema';
+import { blogPostSchema } from '../pages/write/schema/blogPostSchema';
 
 // 코드의 의미: 폼 스키마 정의
 // 왜 사용했는지: 전체 폼 데이터의 타입과 유효성 검사를 정의
-export const FormSchema = CombinedSchema;
+
+export const FormSchema = z.intersection(CombinedSchema, blogPostSchema);
 
 // 코드의 의미: 폼 스키마 타입 추출
 // 왜 사용했는지: 타입스크립트에서 폼 데이터 타입 사용
