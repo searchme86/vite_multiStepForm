@@ -16,7 +16,7 @@ import { useFormContext } from 'react-hook-form';
 import PostGuidelines from '../../../components/PostGuidelines';
 import BlogTitle from './parts/BlogTitle';
 import BlogSummary from './parts/BlogSummary';
-import BlogCategory from './parts/BlogCategory';
+import BlogCategorySection from './parts/BlogCategorySection';
 import BlogContent from './parts/BlogContent';
 import type { blogPostSchemaType } from '../schema/blogPostSchema';
 
@@ -37,7 +37,7 @@ function BasicInfoSection() {
         <BlogTitle />
         <BlogSummary />
         <BlogContent />
-        <BlogCategory />
+        <BlogCategorySection />
         <div className="flex flex-col gap-6"></div>
       </div>
     </div>
