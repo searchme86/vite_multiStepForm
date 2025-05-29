@@ -3,6 +3,7 @@ import { CombinedEmailSchema } from '../pages/write/basicFormSection/parts/perso
 
 import { JobSchema } from '../pages/temp/workExperience/schema/JobSchema';
 import { TocItemSchema } from '../pages/write/basicFormSection/parts/tocEditor/schema/TocSchema';
+import { blogPostSchema } from '../pages/write/schema/blogPostSchema';
 
 // 코드의 의미: 전체 폼 스키마 결합
 // 왜 사용했는지: 모든 폼 필드의 유효성 검사를 하나의 스키마로 통합
@@ -84,5 +85,6 @@ export const CombinedSchema = z.object({
   resume: z.array(z.instanceof(File)).optional(),
   tocItems: z.array(TocItemSchema).optional(),
 });
+// .merge(blogPostSchema);
 
 export type CombinedSchemaType = z.infer<typeof CombinedSchema>;

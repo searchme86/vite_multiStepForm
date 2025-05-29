@@ -1,32 +1,65 @@
-//====여기부터 수정됨====
-// 코드의 의미: 멀티스텝 폼의 헤더 컴포넌트
-// 왜 사용했는지: 단계 내비게이션 제공
-// 수정 이유: hookFormStepObj 전달 제거, 에러 처리 간소화
 import type { EachStep } from '@/components/multiStepForm/types/multiStepFormType';
 import { useStepForm } from '../hooks/useStepForm';
 import type { FieldErrors, FieldError } from 'react-hook-form';
 import { useFormContext } from 'react-hook-form';
 import type { FormSchemaType } from '../../../schema/FormSchema';
 import { toast } from 'sonner';
-// import { cn } from '@/lib/utils';
 import { cn } from '../../../lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '../../../components/ui/button';
-import type { FormPaths } from '@/stores/multiStepFormState/InitialStepFormState';
+import type { FormPaths } from '../../../stores/multiStepFormState/initialStepFormState';
 
-// 코드의 의미: 중첩 경로를 단일 키로 변환
-// 왜 사용했는지: trigger와 호환되는 키 생성
 const convertFieldPathsToKeys = (
   fieldPaths: (FormPaths | undefined)[]
-): (keyof FormSchemaType)[] => {
-  return fieldPaths
-    .filter((path): path is string => typeof path === 'string')
-    .map((path) => path.split('.')[0] as keyof FormSchemaType)
-    .filter((key, index, self) => self.indexOf(key) === index);
+): string[] => {
+  const validPaths: string[] = [];
+
+  for (const path of fieldPaths) {
+    if (path && typeof path === 'string') {
+      const rootKey = path.split('.')[0];
+      if (rootKey && !validPaths.includes(rootKey)) {
+        validPaths.push(rootKey);
+      }
+    }
+  }
+
+  return validPaths;
 };
 
-// 코드의 의미: 헤더 컴포넌트
-// 왜 사용했는지: 단계별 내비게이션 버튼 렌더링
+const getNestedError = (
+  errors: FieldErrors<FormSchemaType>,
+  path: string
+): FieldError | undefined => {
+  const keys = path.split('.');
+  let current: unknown = errors;
+
+  for (const key of keys) {
+    if (current && typeof current === 'object' && key in current) {
+      current = (current as Record<string, unknown>)[key];
+    } else {
+      return undefined;
+    }
+  }
+
+  return current && typeof current === 'object' && 'message' in current
+    ? (current as FieldError)
+    : undefined;
+};
+
+const getValidFieldPaths = (
+  fieldPaths: (FormPaths | undefined)[]
+): string[] => {
+  const validPaths: string[] = [];
+
+  for (const field of fieldPaths) {
+    if (field && typeof field === 'string') {
+      validPaths.push(field);
+    }
+  }
+
+  return validPaths;
+};
+
 function StepFormHeader({ totalSteps }: { totalSteps: EachStep[] }) {
   const { currentStep, setStep } = useStepForm(totalSteps, null);
   const {
@@ -34,36 +67,26 @@ function StepFormHeader({ totalSteps }: { totalSteps: EachStep[] }) {
     formState: { errors },
   } = useFormContext<FormSchemaType>();
 
-  // 코드의 의미: 단계 이동 핸들러
-  // 왜 사용했는지: 클릭 시 유효성 검사 후 단계 이동
   const handleStepNavigation = async (idx: number, step: EachStep) => {
     if (!totalSteps[currentStep]) return;
+
     const fields = convertFieldPathsToKeys(
       totalSteps[currentStep].fieldsOfStep
     );
-    const res = await trigger(fields, { shouldFocus: true });
+    const res = await trigger(fields as (keyof FormSchemaType)[], {
+      shouldFocus: true,
+    });
+
     if (!res) {
-      const errorMessages = step.fieldsOfStep
-        .filter((input): input is string => typeof input === 'string')
+      const validFields = getValidFieldPaths(step.fieldsOfStep);
+      const errorMessages = validFields
         .map((input) => {
-          const error = input
-            .split('.')
-            .reduce(
-              (
-                obj: FieldErrors<FormSchemaType> | FieldError | undefined,
-                key: string
-              ) =>
-                obj && typeof obj === 'object'
-                  ? ((obj as Record<string, unknown>)[key] as
-                      | FieldError
-                      | undefined)
-                  : undefined,
-              errors
-            );
+          const error = getNestedError(errors, input);
           return error?.message;
         })
-        .filter((msg): msg is string => !!msg)
+        .filter((msg): msg is string => Boolean(msg))
         .join(', ');
+
       toast.error('입력 오류', {
         description: errorMessages || '필수 입력 필드를 채워주세요.',
         duration: 5000,
@@ -73,8 +96,6 @@ function StepFormHeader({ totalSteps }: { totalSteps: EachStep[] }) {
     setStep(idx);
   };
 
-  // 코드의 의미: 헤더 렌더링
-  // 왜 사용했는지: 단계별 버튼과 진행 상태 표시
   return (
     <nav
       className="flex flex-col gap-4 p-4 border-b border-border bg-background"
@@ -85,24 +106,10 @@ function StepFormHeader({ totalSteps }: { totalSteps: EachStep[] }) {
         {totalSteps.map((step, idx) => {
           const isActive = idx <= currentStep;
           const isDisabled = idx > currentStep;
-          const isFieldHasError = step.fieldsOfStep.some((key) => {
-            if (!key || typeof key !== 'string') return false;
-            return (
-              key
-                .split('.')
-                .reduce(
-                  (
-                    obj: FieldErrors<FormSchemaType> | FieldError | undefined,
-                    k: string
-                  ) =>
-                    obj && typeof obj === 'object'
-                      ? ((obj as Record<string, unknown>)[k] as
-                          | FieldError
-                          | undefined)
-                      : undefined,
-                  errors
-                ) !== undefined
-            );
+
+          const validFields = getValidFieldPaths(step.fieldsOfStep);
+          const isFieldHasError = validFields.some((key) => {
+            return getNestedError(errors, key) !== undefined;
           });
 
           return (
@@ -162,4 +169,3 @@ function StepFormHeader({ totalSteps }: { totalSteps: EachStep[] }) {
 }
 
 export default StepFormHeader;
-//====여기까지 수정됨====
