@@ -1,12 +1,5 @@
-import EmailForm from '../../pages/write/basicFormSection/parts/personInfo/parts/emailForm/EmailForm';
-import TocEditorContainer from '../../pages/write/basicFormSection/parts/tocEditor/TocEditorContainer';
-
-import type {
-  StepFormState,
-  EachStep,
-} from '../../components/multiStepForm/types/multiStepFormType.ts';
+import type { StepFormState } from '../../components/multiStepForm/types/multiStepFormType.ts';
 import type { FormSchemaType } from '@/schema/FormSchema';
-import BasicInfoSection from '../../pages/write/basicFormSection/BasicInfoSection';
 import { initialFieldsState } from './stepFieldsState/initialFieldsState.ts';
 
 // 코드의 의미: 중첩 경로 유틸리티 타입
