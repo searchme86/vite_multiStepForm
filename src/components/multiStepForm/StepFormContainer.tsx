@@ -9,12 +9,11 @@ import StepFormHeader from './parts/StepFormHeader';
 import StepFormFooter from './parts/StepFormFooter';
 import RenderStepComponent from './parts/RenderStepComponent';
 import { FormSchema } from '../../schema/FormSchema';
-// import { FormSchema } from '@/schema/FormSchema';
 import { useFormSetup } from './hooks/useFormSetup'; // 올바른 경로로 수정
 import { useStepForm } from './hooks/useStepForm';
 import { toast } from 'sonner';
-import { totalSteps } from '../../stores/multiStepFormState/initialStepFormState';
 import type { FormSchemaType } from '@/schema/FormSchema';
+import { totalSteps } from '../../stores/multiStepFormState/utils/multistepPath';
 
 // 코드의 의미: 메인 컨테이너 컴포넌트
 // 왜 사용했는지: 폼과 단계 컴포넌트를 렌더링
