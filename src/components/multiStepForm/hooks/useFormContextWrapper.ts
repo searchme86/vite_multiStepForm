@@ -1,6 +1,6 @@
 import type { UseFormReturn } from 'react-hook-form';
 import { useFormContext } from 'react-hook-form';
-import type { FormSchemaType } from '@/schema/FormSchema';
+import type { FormSchemaType } from '../../../schema/FormSchema';
 
 // 코드의 의미: 폼 컨텍스트 래퍼 훅
 // 왜 사용했는지: react-hook-form의 FormProvider 컨텍스트를 타입 안전하게 사용

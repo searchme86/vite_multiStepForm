@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import ReactQuill from 'react-quill';
-import { useStepFieldsStateStore } from '../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import { useStepFieldsStateStore } from '../../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
 try {
   await import('react-quill/dist/quill.snow.css');
@@ -8,9 +8,9 @@ try {
   console.warn('ReactQuill CSS not found, using default styles');
 }
 
-import type { blogPostSchemaType } from '../../pages/write/schema/blogPostSchema';
+import type { blogPostSchemaType } from '../../../../pages/write/schema/blogPostSchema';
 import debounce from 'lodash/debounce';
-import { Button } from '../../components/ui/button';
+import { Button } from '../../../../components/ui/button';
 
 type ErrorMessage = {
   type: 'empty' | 'multi-block' | 'mapping-failed';

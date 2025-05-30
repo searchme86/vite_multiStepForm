@@ -5,11 +5,11 @@ import {
   type FieldValues,
   type UseFormSetValue,
 } from 'react-hook-form';
-import { Input } from '../../components/ui/input';
-import { Button } from '../../components/ui/button';
-import type { blogPostSchemaType } from '../../pages/write/schema/blogPostSchema';
+import { Input } from '../../../../components/ui/input';
+import { Button } from '../../../../components/ui/button';
+import type { blogPostSchemaType } from '../../../write/schema/blogPostSchema';
 import DOMPurify from 'dompurify';
-import { useStepFieldsStateStore } from '../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import { useStepFieldsStateStore } from '../../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
 type ErrorMessage = {
   type: 'empty' | 'multi-block' | 'mapping-failed';

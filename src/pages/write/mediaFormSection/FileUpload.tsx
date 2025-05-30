@@ -9,10 +9,10 @@
 //   3. 이미지 미리보기를 플렉스 레이아웃으로 렌더링
 // - 관련 키워드: shadcn/ui, Radix UI, File API, Tailwind CSS, flexbox
 import React from 'react';
-import { Card, CardContent } from './ui/card';
-import { Progress } from './ui/progress';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Progress } from '../../../components/ui/progress';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
 import { Icon } from '@iconify/react';
 
 // 인터페이스: FileUpload 컴포넌트의 props

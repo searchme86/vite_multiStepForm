@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '../../../components/ui/button';
-import type { FormPaths } from '../../../stores/multiStepFormState/initialStepFormState';
+import type { FormPaths } from '../utils/FormPathsUtil';
 
 const convertFieldPathsToKeys = (
   fieldPaths: (FormPaths | undefined)[]

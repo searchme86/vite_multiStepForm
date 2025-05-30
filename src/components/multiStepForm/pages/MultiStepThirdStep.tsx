@@ -1,5 +1,5 @@
 //====여기부터 수정됨====
-// MediaSection.tsx: 블로그 포스트의 미디어 업로드 섹션
+// MultiStepThirdStep.tsx: 블로그 포스트의 미디어 업로드 섹션
 // - 의미: 파일 업로드 관리
 // - 사용 이유: 미디어 입력 기능 분리, Zustand로 상태 지속성 보장
 // - 비유: 사진 앨범 관리
@@ -11,11 +11,11 @@
 // - 관련 키워드: react-hook-form, zustand, shadcn/ui, tailwindcss, flexbox
 
 import { useFormContext } from 'react-hook-form';
-import FileUpload from './FileUpload';
-import FileTableView from './FileTableView';
-import PostGuidelines from './PostGuidelines';
-import { FormMessage } from './ui/form';
-import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import FileUpload from '../../../pages/write/mediaFormSection/FileUpload';
+import FileTableView from '../../../pages/write/mediaFormSection/FileTableView';
+import PostGuidelines from '../../../pages/write/common/PostGuidelines';
+import { FormMessage } from '../../../components/ui/form';
+import { useStepFieldsStateStore } from '../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
 // 타입: 파일 아이템
 // - 의미: 업로드된 파일 정보 구조
@@ -27,10 +27,10 @@ type FileItem = {
   size: number;
 };
 
-// MediaSection: 미디어 업로드 UI
+// MultiStepThirdStep: 미디어 업로드 UI
 // - 의미: 파일 업로드 및 관리 UI 렌더링
 // - 사용 이유: 포스트 미디어 관리, Zustand 동기화
-function MediaSection() {
+function MultiStepThirdStep() {
   // FormProvider로부터 폼 메서드들을 가져옴
   // - 의미: 상위 컴포넌트에서 전달된 폼 컨텍스트 사용
   // - 사용 이유: props drilling 없이 폼 상태에 접근
@@ -143,5 +143,5 @@ function MediaSection() {
   );
 }
 
-export default MediaSection;
+export default MultiStepThirdStep;
 //====여기까지 수정됨====

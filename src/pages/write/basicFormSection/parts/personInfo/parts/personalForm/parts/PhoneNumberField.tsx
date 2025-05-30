@@ -1,7 +1,7 @@
 import { Controller } from 'react-hook-form';
 import { useFormContextWrapper } from '@/components/reactHookForm/useFormContextWrapper';
 import type { FormSchemaType } from '@/schema/FormSchema';
-import { PhoneInput } from '@/components/PhoneInput';
+import { PhoneInput } from '@/components/backups/PhoneInput';
 
 // 코드의 의미: 전화번호 입력 필드 컴포넌트
 // 왜 사용했는지: 국제 전화번호 입력 UI를 제공하며, react-hook-form과 연동

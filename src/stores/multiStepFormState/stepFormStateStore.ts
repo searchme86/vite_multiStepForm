@@ -10,7 +10,7 @@ import type {
 } from '@/components/multiStepForm/types/multiStepFormType';
 import { createStepFormGetters } from './GetterStepFormState';
 import { createStepFormSetters } from './SetterStepFormState';
-import { totalSteps } from './utils/multistepPath';
+import { totalSteps } from '../../components/multiStepForm/utils/multistepPath';
 
 // 코드의 의미: Zustand 스토어 생성
 // 왜 사용했는지: 상태 관리와 localStorage 지속성을 통합

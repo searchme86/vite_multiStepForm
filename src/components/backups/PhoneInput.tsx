@@ -12,7 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Input } from '../components/ui/input';
+import { Input } from '../ui/input';
 import {
   Popover,
   PopoverContent,

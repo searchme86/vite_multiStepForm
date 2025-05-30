@@ -1,5 +1,4 @@
 import type { blogPostSchemaType } from '../../../pages/write/schema/blogPostSchema';
-//aaadsdfee
 export const initialFieldsState: blogPostSchemaType = {
   title: '',
   summary: '',

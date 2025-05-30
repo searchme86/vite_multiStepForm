@@ -1,6 +1,6 @@
 import type { UseFormReturn } from 'react-hook-form';
 import type { FormSchemaType } from '@/schema/FormSchema';
-import type { FormPaths } from '../../../stores/multiStepFormState/utils/FormPathsUtil';
+import type { FormPaths } from '../utils/FormPathsUtil';
 
 // 코드의 의미: 멀티스텝 폼의 타입 정의
 // 왜 사용했는지: 타입 재사용성과 코드 일관성 보장

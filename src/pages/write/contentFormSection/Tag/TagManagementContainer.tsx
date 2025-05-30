@@ -2,7 +2,7 @@ import { useFormContext } from 'react-hook-form';
 import TagAutoComplete from './TagAutoComplete';
 import TagList from './TagList';
 import { useTagManagement } from './useTagManagement';
-import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
+import type { blogPostSchemaType } from '../../schema/blogPostSchema';
 
 // 컴포넌트: 태그 관리 컨테이너
 // - 의미: 태그 입력과 표시를 통합한 UI 컨테이너

@@ -10,9 +10,9 @@
 // - 관련 키워드: react-hook-form, zustand, shadcn/ui, tailwindcss, flexbox
 
 import { Controller } from 'react-hook-form';
-import { Switch } from './ui/switch';
-import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
-import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import { Switch } from '../ui/switch';
+import type { blogPostSchemaType } from '../../pages/write/schema/blogPostSchema';
+import { useStepFieldsStateStore } from '../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
 // PublishSection: 초안 및 공개 설정 UI
 // - 의미: 초안 저장과 공개 여부 설정

@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import { useStepFieldsStateStore } from '../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 import DOMPurify from 'dompurify';
 
 type ImageItem = {
@@ -31,7 +31,7 @@ const handleImageError = (event: Event) => {
   }
 };
 
-function PreviewSection() {
+function MultiStepFourthStep() {
   const { watch } = useFormContext();
   const zustandStore = useStepFieldsStateStore();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -259,4 +259,4 @@ function PreviewSection() {
   );
 }
 
-export default PreviewSection;
+export default MultiStepFourthStep;

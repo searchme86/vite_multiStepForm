@@ -17,10 +17,10 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Icon } from '@iconify/react';
-// import BasicInfoSection from '../pages/write/basicFormSection/BasicInfoSection';
-import ContentSection from './ContentSection';
-import MediaSection from './MediaSection';
-import PreviewSection from './PreviewSection';
+import BasicInfoSection from '../pages/write/basicFormSection/BasicInfoSection';
+import ContentSection from '../pages/write/contentFormSection/ContentSection';
+import MediaSection from '../pages/write/mediaFormSection/MediaSection';
+import PreviewSection from '../pages/write/common/PreviewSection';
 import NotificationProvider from './Notification';
 import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
 import { blogPostSchema } from '../pages/write/schema/blogPostSchema';
@@ -45,7 +45,6 @@ function BlogPostForm() {
       content: undefined,
       markdown: undefined,
       searchTerm: undefined,
-      // category: '',
       tags: [],
       coverImage: [],
       publishDate: undefined,
@@ -200,9 +199,9 @@ function BlogPostForm() {
                         </TabsTrigger>
                       ))}
                     </TabsList>
-                    {/* <TabsContent value="basic" className="mt-0">
-                    <BasicInfoSection />
-                  </TabsContent> */}
+                    <TabsContent value="basic" className="mt-0">
+                      <BasicInfoSection />
+                    </TabsContent>
                     <TabsContent value="content" className="mt-0">
                       <ContentSection />
                     </TabsContent>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { FormItem, FormMessage } from './ui/form';
+import { Input } from '../../../../components/ui/input';
+import { Button } from '../../../../components/ui/button';
+import { FormItem, FormMessage } from '../../../../components/ui/form';
 
 // 인터페이스: 컴포넌트 props 정의
 // - 의미: 다중 태그 추가를 위한 콜백 함수 정의

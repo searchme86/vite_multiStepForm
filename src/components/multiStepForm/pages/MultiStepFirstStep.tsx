@@ -1,4 +1,4 @@
-// BasicInfoSection.tsx: 블로그 포스트의 기본 정보 입력 섹션
+// MultiStepFirstStep.tsx: 블로그 포스트의 기본 정보 입력 섹션
 // - 의미: 제목, 요약, 내용, 카테고리 입력 관리
 // - 사용 이유: 핵심 정보 입력을 위한 UI 제공
 // - 비유: 블로그 포스트의 표지(제목), 소개글(요약), 본문(내용), 라벨(카테고리)
@@ -11,17 +11,16 @@
 //   6. 요약 필드 추가, 내용 필드 optional 처리
 // - 관련 키워드: react-hook-form, shadcn/ui, flexbox, Textarea, Zod
 
-//====여기부터 수정됨====
 import { useFormContext } from 'react-hook-form';
-import PostGuidelines from '../common/PostGuidelines';
-import BlogTitle from './parts/BlogTitle';
-import BlogSummary from './parts/BlogSummary';
-import BlogCategorySection from './parts/BlogCategorySection';
-import BlogContent from './parts/BlogContent';
-import type { blogPostSchemaType } from '../schema/blogPostSchema';
-import TocEditorContainer from './parts/tocEditor/TocEditorContainer';
+import PostGuidelines from '../../../pages/write/common/PostGuidelines';
+import BlogTitle from '../../../pages/write/basicFormSection/parts/BlogTitle';
+import BlogSummary from '../../../pages/write/basicFormSection/parts/BlogSummary';
+import BlogCategorySection from '../../../pages/write/basicFormSection/parts/BlogCategorySection';
+import BlogContent from '../../../pages/write/basicFormSection/parts/BlogContent';
+import TocEditorContainer from '../../../pages/write/basicFormSection/parts/tocEditor/TocEditorContainer';
+import type { blogPostSchemaType } from '../../../pages/write/schema/blogPostSchema';
 
-function BasicInfoSection() {
+function MultiStepFirstStep() {
   // React Hook Form의 FormProvider로부터 폼 메서드들을 가져옴
   // - 의미: 상위 컴포넌트에서 전달된 폼 컨텍스트 사용
   // - 사용 이유: props drilling 없이 폼 상태에 접근
@@ -46,5 +45,4 @@ function BasicInfoSection() {
   );
 }
 
-export default BasicInfoSection;
-//====여기까지 수정됨====
+export default MultiStepFirstStep;

@@ -1,4 +1,4 @@
-import { Button } from './ui/button';
+import { Button } from '../../../../components/ui/button';
 
 // 인터페이스: 태그 목록 컴포넌트 props
 // - 의미: 태그 배열과 삭제 콜백 함수 정의

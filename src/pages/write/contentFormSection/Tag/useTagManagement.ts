@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
-import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
+import { useStepFieldsStateStore } from '../../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import type { blogPostSchemaType } from '../../schema/blogPostSchema';
 
 // 훅: 태그 관리 로직 (5개 초과 에러 처리 추가)
 // - 의미: blogPostSchemaType의 tags 필드를 관리하는 커스텀 훅

@@ -12,12 +12,12 @@
 
 import { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import PostGuidelines from './PostGuidelines';
+import PostGuidelines from '../common/PostGuidelines';
 import MarkdownEditor from './markdown/MarkdownEditor';
 import MarkdownPreview from './markdown/MarkdownPreview';
 import { Drawer } from 'vaul';
-import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
-import TagManagementContainer from './TagManagementContainer';
+import { useStepFieldsStateStore } from '../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import TagManagementContainer from './Tag/TagManagementContainer';
 
 // vaul.css를 조건부로 import
 // - 의미: Drawer 컴포넌트 스타일 적용

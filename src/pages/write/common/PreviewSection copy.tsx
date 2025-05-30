@@ -14,7 +14,7 @@
 import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import ReactQuill from 'react-quill';
-import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import { useStepFieldsStateStore } from '../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
 // CSS 스타일시트를 조건부로 import
 // - 의미: ReactQuill 읽기 전용 테마 스타일 적용

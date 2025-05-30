@@ -16,15 +16,15 @@ import {
   TableBody,
   TableRow,
   TableCell,
-} from './ui/table';
-import { Checkbox } from './ui/checkbox';
-import { Button } from './ui/button';
+} from '../../../components/ui/table';
+import { Checkbox } from '../../../components/ui/checkbox';
+import { Button } from '../../../components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from './ui/tooltip';
+} from '../../../components/ui/tooltip';
 import { Icon } from '@iconify/react';
 
 // 인터페이스: FileTableView 컴포넌트의 props

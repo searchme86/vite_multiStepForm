@@ -9,10 +9,10 @@
 //   3. Zustand에서 탭별 데이터 복원
 // - 관련 키워드: react-hook-form, zustand, shadcn/ui, tailwindcss
 
-import { Button } from './ui/button';
-import type { blogPostSchemaType } from '../pages/write/schema/blogPostSchema';
+import { Button } from '../../../components/ui/button';
+import type { blogPostSchemaType } from '../schema/blogPostSchema';
 import toast from 'react-hot-toast';
-import { useStepFieldsStateStore } from '../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
+import { useStepFieldsStateStore } from '../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
 // 인터페이스: 컴포넌트 props
 // - 의미: 탭 식별자와 setValue 메서드 전달
