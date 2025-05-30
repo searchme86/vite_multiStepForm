@@ -1,5 +1,6 @@
 import BlogPostForm from './components/BlogPostForm';
 import ErrorBoundary from './components/ErrorBoundary';
+import StepFormContainer from './components/multiStepForm/StepFormContainer';
 import { Toaster } from './components/ui/sonner';
 
 // 함수: 앱 컴포넌트

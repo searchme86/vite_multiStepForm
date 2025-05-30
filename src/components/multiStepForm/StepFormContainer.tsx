@@ -81,7 +81,7 @@ function StepFormContainer() {
       <Form {...methods}>
         <form
           onSubmit={methods.handleSubmit(onSubmit)}
-          className="flex flex-col justify-between py-20 space-y-8 h-svh"
+          className="flex flex-col justify-between py-20 space-y-8"
         >
           {/* 코드의 의미: 단계 헤더 */}
           <StepFormHeader totalSteps={totalSteps} />

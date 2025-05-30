@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Icon } from '@iconify/react';
-import BasicInfoSection from '../pages/write/basicFormSection/BasicInfoSection';
+// import BasicInfoSection from '../pages/write/basicFormSection/BasicInfoSection';
 import ContentSection from './ContentSection';
 import MediaSection from './MediaSection';
 import PreviewSection from './PreviewSection';
@@ -45,7 +45,7 @@ function BlogPostForm() {
       content: undefined,
       markdown: undefined,
       searchTerm: undefined,
-      category: '',
+      // category: '',
       tags: [],
       coverImage: [],
       publishDate: undefined,
@@ -177,51 +177,57 @@ function BlogPostForm() {
               </div>
             </div>
             <DisplayDate />
-            <StepFormContainer />
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <FormProvider {...methods}>
-                <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="flex w-full h-auto gap-6 p-1 mb-6 bg-gray-100 rounded-lg">
-                    {['basic', 'content', 'media', 'preview'].map((tab) => (
-                      <TabsTrigger
-                        key={tab}
-                        value={tab}
-                        className="w-full text-sm font-medium rounded-md sm:text-base data-[state=active]:text-blue-600 data-[state=active]:font-semibold"
-                        aria-label={`${tab} 탭`} // 웹 접근성: 탭 설명
-                      >
-                        {tab === 'basic' && '기본 정보'}
-                        {tab === 'content' && '본문 작성'}
-                        {tab === 'media' && '미디어'}
-                        {tab === 'preview' && '미리보기'}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                  <TabsContent value="basic" className="mt-0">
+            <div className="">
+              <StepFormContainer />
+            </div>
+            {/* tab 영역 */}
+            <div className="">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <FormProvider {...methods}>
+                  <Tabs defaultValue="basic" className="w-full">
+                    <TabsList className="flex w-full h-auto gap-6 p-1 mb-6 bg-gray-100 rounded-lg">
+                      {['basic', 'content', 'media', 'preview'].map((tab) => (
+                        <TabsTrigger
+                          key={tab}
+                          value={tab}
+                          className="w-full text-sm font-medium rounded-md sm:text-base data-[state=active]:text-blue-600 data-[state=active]:font-semibold"
+                          aria-label={`${tab} 탭`} // 웹 접근성: 탭 설명
+                        >
+                          {tab === 'basic' && '기본 정보'}
+                          {tab === 'content' && '본문 작성'}
+                          {tab === 'media' && '미디어'}
+                          {tab === 'preview' && '미리보기'}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    {/* <TabsContent value="basic" className="mt-0">
                     <BasicInfoSection />
-                  </TabsContent>
-                  <TabsContent value="content" className="mt-0">
-                    <ContentSection />
-                  </TabsContent>
-                  <TabsContent value="media" className="mt-0">
-                    <MediaSection />
-                  </TabsContent>
-                  <TabsContent value="preview" className="mt-0">
-                    <PreviewSection />
-                    <div className="flex justify-end mt-6">
-                      <Button
-                        type="submit"
-                        disabled={methods.formState.isSubmitting}
-                        aria-label="게시"
-                        className="w-full sm:w-auto"
-                      >
-                        <Icon icon="lucide:send" className="w-4 h-4 mr-2" />
-                        게시
-                      </Button>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </FormProvider>
-            </form>
+                  </TabsContent> */}
+                    <TabsContent value="content" className="mt-0">
+                      <ContentSection />
+                    </TabsContent>
+                    <TabsContent value="media" className="mt-0">
+                      <MediaSection />
+                    </TabsContent>
+                    <TabsContent value="preview" className="mt-0">
+                      <PreviewSection />
+                      <div className="flex justify-end mt-6">
+                        <Button
+                          type="submit"
+                          disabled={methods.formState.isSubmitting}
+                          aria-label="게시"
+                          className="w-full sm:w-auto"
+                        >
+                          <Icon icon="lucide:send" className="w-4 h-4 mr-2" />
+                          게시
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </FormProvider>
+              </form>
+            </div>
+            {/* tab 영역 */}
           </CardContent>
         </Card>
       </div>
