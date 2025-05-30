@@ -9,7 +9,7 @@ import type {
 } from '@/components/multiStepForm/types/multiStepFormType';
 import type { UseFormReturn } from 'react-hook-form';
 import type { FormSchemaType } from '@/schema/FormSchema';
-import type { FormPaths } from '@/stores/multiStepFormState/InitialStepFormState';
+import type { FormPaths } from '../../components/multiStepForm/utils/FormPathsUtil';
 
 // 코드의 의미: 중첩 경로를 단일 키로 변환
 // 왜 사용했는지: react-hook-form의 trigger와 호환

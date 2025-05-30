@@ -11,12 +11,7 @@ export type TocItemType = {
 type CapitalizeString<S extends string> =
   S extends `${infer First}${infer Rest}` ? `${Uppercase<First>}${Rest}` : S;
 
-export type GetterFieldsState = {
-  [K in keyof blogPostSchemaType as `get${CapitalizeString<
-    string & K
-  >}`]: () => blogPostSchemaType[K];
-};
-
+// SetterFieldsState: 각 필드에 대한 setter 메서드들
 export type SetterFieldsState = {
   [K in keyof blogPostSchemaType as `set${CapitalizeString<string & K>}`]: (
     value: blogPostSchemaType[K]
@@ -26,18 +21,18 @@ export type SetterFieldsState = {
   setFormData: (data: blogPostSchemaType) => void;
 };
 
+// 평면화된 구조의 StepFieldsStateStore
+// state를 중첩하지 않고 모든 필드를 최상위 레벨에 배치
 export interface StepFieldsStateStore
-  extends GetterFieldsState,
+  extends blogPostSchemaType,
     SetterFieldsState {
-  state: blogPostSchemaType;
+  // blogPostSchemaType의 모든 필드가 직접 포함됨 (title, summary, content 등)
+  // SetterFieldsState의 모든 메서드가 포함됨 (setTitle, setSummary 등)
 }
 
 // 동적 메서드 생성을 위한 헬퍼 타입
-export type GetterMethodName<K extends keyof blogPostSchemaType> =
-  `get${CapitalizeString<string & K>}`;
 export type SetterMethodName<K extends keyof blogPostSchemaType> =
   `set${CapitalizeString<string & K>}`;
 
 // 타입 안전한 동적 할당을 위한 헬퍼 타입
-export type PartialGetterFieldsState = Partial<GetterFieldsState>;
 export type PartialSetterFieldsState = Partial<SetterFieldsState>;

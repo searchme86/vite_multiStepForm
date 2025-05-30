@@ -1,18 +1,13 @@
-//====여기부터 수정됨====
-// 코드의 의미: 멀티스텝 폼의 메인 컨테이너
-// 왜 사용했는지: 폼 상태와 컴포넌트를 통합 관리
-// 수정 이유: useFormSetup 임포트 경로 수정, 타입 가드 강화로 TS2677, TS18048 에러 해결
 import { FormProvider } from 'react-hook-form';
-// import { Form } from '../../components/ui/form';
 import { Form } from '../../components/ui/form';
+import { toast } from 'sonner';
 import StepFormHeader from './parts/StepFormHeader';
 import StepFormFooter from './parts/StepFormFooter';
 import RenderStepComponent from './parts/RenderStepComponent';
 import { FormSchema } from '../../schema/FormSchema';
-import { useFormSetup } from './hooks/useFormSetup'; // 올바른 경로로 수정
+import { useFormSetup } from './hooks/useFormSetup';
 import { useStepForm } from './hooks/useStepForm';
-import { toast } from 'sonner';
-import type { FormSchemaType } from '@/schema/FormSchema';
+import type { FormSchemaType } from '../../schema/FormSchema';
 import { totalSteps } from './utils/multistepPath';
 
 // 코드의 의미: 메인 컨테이너 컴포넌트

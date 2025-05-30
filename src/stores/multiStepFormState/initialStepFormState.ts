@@ -2,20 +2,6 @@ import type { StepFormState } from '../../components/multiStepForm/types/multiSt
 import type { FormSchemaType } from '@/schema/FormSchema';
 import { initialFieldsState } from './stepFieldsState/initialFieldsState.ts';
 
-// // 코드의 의미: 중첩 경로 유틸리티 타입
-// // 왜 사용했는지: 폼 필드 경로를 타입 안전하게 생성
-// export type Paths<T> = T extends object
-//   ? {
-//       [K in keyof T]: K extends string
-//         ? T[K] extends object
-//           ? `${K}.${Paths<T[K]>}`
-//           : K
-//         : never;
-//     }[keyof T]
-//   : never;
-
-// export type FormPaths = Paths<FormSchemaType>;
-
 // 코드의 의미: 기본 폼 필드 값
 // 왜 사용했는지: 폼의 초기 데이터 제공
 export const defaultFieldsValue: FormSchemaType = {
@@ -33,7 +19,6 @@ export const defaultFieldsValue: FormSchemaType = {
   github: '',
   portfolio: '',
   resume: [],
-  // tocItems: [],
   ...initialFieldsState,
 };
 

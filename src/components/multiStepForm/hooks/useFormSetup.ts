@@ -6,7 +6,8 @@ import type { UseFormReturn } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ZodSchema } from 'zod';
-import type { FormSchemaType } from '@/schema/FormSchema';
+import type { FormSchemaType } from '../../../schema/FormSchema';
+import { defaultFieldsValue } from '../../../stores/multiStepFormState/initialStepFormState';
 
 // 코드의 의미: 폼 설정 훅 정의
 // 왜 사용했는지: 폼 초기화와 유효성 검사 설정
@@ -19,23 +20,7 @@ export const useFormSetup = <T extends ZodSchema>(
   // 실행 매커니즘: useForm을 최상단에서 호출, 폼 상태 초기화
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      phone: '',
-      email: {
-        fullEmailInput: '',
-        splitEmailInput: {
-          userLocalPart: '',
-          emailRest: '',
-        },
-      },
-      jobs: [],
-      github: '',
-      portfolio: '',
-      resume: [],
-      tocItems: [],
-    },
+    defaultValues: defaultFieldsValue,
     mode: 'onChange',
   });
 

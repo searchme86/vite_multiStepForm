@@ -1,3 +1,4 @@
+import BlogPostForm from './components/BlogPostForm';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from './components/ui/sonner';
 import Write from './pages/write/Write';
@@ -14,6 +15,7 @@ function App() {
     // </div>
     <div className="container p-4 mx-auto">
       <ErrorBoundary>
+        {/* <BlogPostForm /> */}
         <Write />
         <Toaster />
       </ErrorBoundary>
