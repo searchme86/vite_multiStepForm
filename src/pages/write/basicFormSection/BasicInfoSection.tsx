@@ -19,6 +19,7 @@ import BlogSummary from './parts/BlogSummary';
 import BlogCategorySection from './parts/BlogCategorySection';
 import BlogContent from './parts/BlogContent';
 import type { blogPostSchemaType } from '../schema/blogPostSchema';
+import TocEditorContainer from './parts/tocEditor/TocEditorContainer';
 
 function BasicInfoSection() {
   // React Hook Form의 FormProvider로부터 폼 메서드들을 가져옴
@@ -38,6 +39,7 @@ function BasicInfoSection() {
         <BlogSummary />
         <BlogContent />
         <BlogCategorySection />
+        <TocEditorContainer />
         <div className="flex flex-col gap-6"></div>
       </div>
     </div>

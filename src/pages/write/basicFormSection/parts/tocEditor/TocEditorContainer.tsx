@@ -54,11 +54,11 @@ function TocEditorContainer() {
   // 코드의 의미: 컴포넌트 렌더링
   // 왜 사용했는지: 입력 UI와 목차 목록 표시
   return (
-    <div className="flex flex-col w-full max-w-3xl p-4 mx-auto space-y-4 sm:p-6">
+    <div className="flex flex-col w-full">
       {/* 코드의 의미: 컴포넌트 제목 */}
-      <h2 className="text-lg font-semibold">목차 편집</h2>
+      <strong className="text-sm font-medium">목차 편집</strong>
       {/* 코드의 의미: 최상위 항목 입력 UI */}
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-2 py-2 sm:flex-row">
         <Input
           value={inputText}
           onChange={(e) => {
