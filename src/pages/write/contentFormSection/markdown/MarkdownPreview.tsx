@@ -7,7 +7,6 @@ import {
 } from 'react-hook-form';
 import { Input } from '../../../../components/ui/input';
 import { Button } from '../../../../components/ui/button';
-import type { blogPostSchemaType } from '../../../write/schema/blogPostSchema';
 import DOMPurify from 'dompurify';
 import { useStepFieldsStateStore } from '../../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
 
@@ -159,8 +158,8 @@ function MarkdownPreview({
   useEffect(() => {
     if (isInitialized) return;
 
-    const storedSearchTerm = zustandStore.state?.searchTerm || '';
-    const storedMarkdown = zustandStore.state?.markdown || '';
+    const storedSearchTerm = zustandStore.searchTerm || '';
+    const storedMarkdown = zustandStore.markdown || '';
 
     if (storedSearchTerm && !searchTerm) {
       setValue('searchTerm', storedSearchTerm);
@@ -171,19 +170,20 @@ function MarkdownPreview({
     }
 
     setIsInitialized(true);
-  }, [isInitialized, setValue, searchTerm, markdown, zustandStore.state]);
+  }, [
+    isInitialized,
+    setValue,
+    searchTerm,
+    markdown,
+    zustandStore.searchTerm,
+    zustandStore.markdown,
+  ]);
 
   const highlightedHTML = React.useMemo(() => {
-    const htmlContent = markdown || zustandStore.state?.markdown || '';
-    const currentSearchTerm =
-      searchTerm || zustandStore.state?.searchTerm || '';
+    const htmlContent = markdown || zustandStore.markdown || '';
+    const currentSearchTerm = searchTerm || zustandStore.searchTerm || '';
     return highlightSearchTerm(htmlContent, currentSearchTerm);
-  }, [
-    markdown,
-    searchTerm,
-    zustandStore.state?.markdown,
-    zustandStore.state?.searchTerm,
-  ]);
+  }, [markdown, searchTerm, zustandStore.markdown, zustandStore.searchTerm]);
 
   useEffect(() => {
     if (!previewRef.current) return;

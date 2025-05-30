@@ -1,13 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { useStepFieldsStateStore } from '../../../../stores/multiStepFormState/stepFieldsState/StepFieldsStateStore';
-
-try {
-  await import('react-quill/dist/quill.snow.css');
-} catch (error) {
-  console.warn('ReactQuill CSS not found, using default styles');
-}
-
 import type { blogPostSchemaType } from '../../../../pages/write/schema/blogPostSchema';
 import debounce from 'lodash/debounce';
 import { Button } from '../../../../components/ui/button';
@@ -78,16 +72,11 @@ function MarkdownEditor({
 
   console.log('editorValue', editorValue);
   useEffect(() => {
-    const storedMarkdown =
-      zustandStore.getMarkdown?.() ||
-      zustandStore.state?.markdown ||
-      editorValue;
+    const storedMarkdown = zustandStore.markdown || editorValue;
     console.log('storedMarkdown', storedMarkdown);
-    const storedRichText =
-      zustandStore.getRichTextContent?.() ||
-      zustandStore.state?.richTextContent ||
-      editorValue;
+    const storedRichText = zustandStore.richTextContent || editorValue;
     console.log('storedRichText', storedRichText);
+
     if (storedMarkdown) {
       setEditorValue(storedMarkdown);
       setValue('markdown', storedMarkdown, { shouldValidate: false });
