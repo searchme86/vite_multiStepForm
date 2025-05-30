@@ -221,6 +221,7 @@ export const createDefaultBlogPost = (): Partial<blogPostSchemaType> => {
 // 유틸리티 함수 - 폼 데이터 정리 (타입 안전성 개선)
 // - 의미: 제출 전 데이터 정리 및 최적화
 // - 사용 이유: 불필요한 데이터 제거 및 형식 통일
+// ====수정된 sanitizeBlogPostData 함수====
 export const sanitizeBlogPostData = (
   data: blogPostSchemaType
 ): blogPostSchemaType => {
@@ -234,17 +235,19 @@ export const sanitizeBlogPostData = (
     markdown: data.markdown?.trim() || '',
     searchTerm: data.searchTerm?.trim() || '',
 
-    // 태그 정리 (중복 제거, 정규화) - 명시적 타입 지정
+    // ====태그 정리 수정====
+    // toLowerCase() 제거 - 원본 대소문자 유지
     tags: Array.from(
       new Set(
         data.tags
-          .map((tag: string) => tag.trim().toLowerCase())
+          .map((tag: string) => tag.trim()) // toLowerCase() 제거
           .filter((tag: string) => tag.length > 0)
       )
     ),
+    // ====태그 정리 수정 끝====
 
     // 날짜 정리
-    lastModified: new Date(), // 항상 현재 시간으로 업데이트
+    lastModified: new Date(),
   };
 };
 

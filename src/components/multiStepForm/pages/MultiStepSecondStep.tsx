@@ -133,6 +133,7 @@ function MultiStepSecondStep() {
               setMarkdown={setMarkdown}
               setRichTextContent={setRichTextContent}
             />
+
             {!isMobile && (
               <MarkdownPreview
                 setSelectedBlockText={setSelectedBlockText}

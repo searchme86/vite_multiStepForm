@@ -5,6 +5,7 @@ import { useStepFieldsStateStore } from '../../../../stores/multiStepFormState/s
 import type { blogPostSchemaType } from '../../../../pages/write/schema/blogPostSchema';
 import debounce from 'lodash/debounce';
 import { Button } from '../../../../components/ui/button';
+import type { FieldErrors, FieldValues } from 'react-hook-form';
 
 type ErrorMessage = {
   type: 'empty' | 'multi-block' | 'mapping-failed';
@@ -60,6 +61,7 @@ function MarkdownEditor({
   setValue,
   setMarkdown,
   setRichTextContent,
+  errors,
 }: MarkdownEditorProps) {
   const zustandStore = useStepFieldsStateStore();
 
